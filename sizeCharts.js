@@ -7,6 +7,9 @@ export const BRANDS = [
   {
     id: 'urbanthread',
     name: 'UrbanThread',
+    priceRange: '$35-$85',
+    quality: 4.5,
+    description: 'Urban streetwear with premium quality',
     chart: {
       top: [
         { size: 'S', chest: [86, 92], waist: [72, 78] },
@@ -20,11 +23,20 @@ export const BRANDS = [
         { size: 'L', waist: [87, 95], weight: [76, 86] },
         { size: 'XL', waist: [96, 104], weight: [87, 98] }
       ]
-    }
+    },
+    products: [
+      { id: 'ub-tshirt-01', name: 'Classic T-Shirt', category: 'top', price: 35, quality: 4.5, rating: 4.7 },
+      { id: 'ub-shirt-01', name: 'Oxford Button Down', category: 'top', price: 65, quality: 4.8, rating: 4.8 },
+      { id: 'ub-jeans-01', name: 'Slim Fit Jeans', category: 'bottom', price: 75, quality: 4.6, rating: 4.6 },
+      { id: 'ub-chinos-01', name: 'Chino Pants', category: 'bottom', price: 60, quality: 4.4, rating: 4.5 }
+    ]
   },
   {
     id: 'streetline',
     name: 'Streetline',
+    priceRange: '$25-$65',
+    quality: 4.0,
+    description: 'Casual streetwear with great value',
     chart: {
       top: [
         { size: 'S', chest: [84, 90], waist: [70, 76] },
@@ -38,11 +50,20 @@ export const BRANDS = [
         { size: 'L', waist: [85, 93], weight: [75, 85] },
         { size: 'XL', waist: [94, 102], weight: [86, 97] }
       ]
-    }
+    },
+    products: [
+      { id: 'sl-tshirt-01', name: 'Graphic T-Shirt', category: 'top', price: 25, quality: 4.0, rating: 4.3 },
+      { id: 'sl-hoodie-01', name: 'Hoodie', category: 'top', price: 45, quality: 4.1, rating: 4.4 },
+      { id: 'sl-jeans-01', name: 'Regular Jeans', category: 'bottom', price: 50, quality: 3.9, rating: 4.2 },
+      { id: 'sl-shorts-01', name: 'Cargo Shorts', category: 'bottom', price: 40, quality: 3.8, rating: 4.0 }
+    ]
   },
   {
     id: 'novawear',
     name: 'NovaWear',
+    priceRange: '$45-$95',
+    quality: 4.7,
+    description: 'Premium fit with exceptional quality',
     chart: {
       top: [
         { size: 'S', chest: [88, 94], waist: [74, 80] },
@@ -56,7 +77,13 @@ export const BRANDS = [
         { size: 'L', waist: [89, 97], weight: [77, 87] },
         { size: 'XL', waist: [98, 106], weight: [88, 99] }
       ]
-    }
+    },
+    products: [
+      { id: 'nw-tshirt-01', name: 'Premium T-Shirt', category: 'top', price: 45, quality: 4.8, rating: 4.9 },
+      { id: 'nw-polo-01', name: 'Polo Shirt', category: 'top', price: 65, quality: 4.7, rating: 4.8 },
+      { id: 'nw-jeans-01', name: 'Skinny Fit Jeans', category: 'bottom', price: 85, quality: 4.9, rating: 4.9 },
+      { id: 'nw-trousers-01', name: 'Tailored Trousers', category: 'bottom', price: 95, quality: 5.0, rating: 4.9 }
+    ]
   }
 ];
 
@@ -234,4 +261,80 @@ export const validateBrandData = (brands) => {
   });
 
   return { valid: errors.length === 0, errors };
+};
+
+/**
+ * ML-BASED BRAND RECOMMENDATION ENGINE
+ * Scores brands based on: fit accuracy, price, quality, and product ratings
+ */
+export const getRecommendedBrands = ({ measurements, category, brandsOverride }) => {
+  const brands = getBrandsSafe(brandsOverride);
+  
+  // Normalize measurements for ML model
+  const normalizedMeasurements = {
+    chest: toNumber(measurements.chest) / 100 || 0,
+    waist: toNumber(measurements.waist) / 100 || 0,
+    weight: toNumber(measurements.weight) / 100 || 0,
+    height: toNumber(measurements.height) / 200 || 0,
+  };
+  
+  // Score each brand
+  const brandScores = brands.map((brand) => {
+    // 1. FIT SCORE (40% weight) - How well measurements match
+    const prediction = predictSize({
+      brandId: brand.id,
+      category,
+      measurements,
+      brandsOverride: brands
+    });
+    
+    const fitConfidenceMap = { 'High': 1.0, 'Medium': 0.7, 'Low': 0.4 };
+    const fitScore = fitConfidenceMap[prediction.confidence] || 0.4;
+    const normalizedFitScore = Math.max(0, 1 - (prediction.score / 10)); // Fit improves as score decreases
+    const combinedFitScore = (fitScore + normalizedFitScore) / 2; // Average the two fit metrics
+    
+    // 2. QUALITY SCORE (30% weight) - Brand quality rating
+    const qualityScore = (brand.quality || 4.0) / 5.0;
+    
+    // 3. PRODUCT SCORE (20% weight) - Average rating of available products
+    const categoryProducts = (brand.products || []).filter(p => p.category === category);
+    const productScore = categoryProducts.length > 0 
+      ? categoryProducts.reduce((sum, p) => sum + (p.rating || 4.0), 0) / (categoryProducts.length * 5.0)
+      : 0.5;
+    
+    // 4. VALUE SCORE (10% weight) - Price to quality ratio
+    const priceBase = 50; // Reference price
+    const avgProductPrice = categoryProducts.length > 0 
+      ? categoryProducts.reduce((sum, p) => sum + (p.price || 50), 0) / categoryProducts.length
+      : 50;
+    const valueScore = Math.max(0.3, 1 - ((avgProductPrice - priceBase) / 100));
+    
+    // FINAL SCORE: Weighted combination
+    const finalScore = 
+      (combinedFitScore * 0.40) + 
+      (qualityScore * 0.30) + 
+      (productScore * 0.20) + 
+      (valueScore * 0.10);
+    
+    return {
+      brandId: brand.id,
+      name: brand.name,
+      description: brand.description || '',
+      priceRange: brand.priceRange || '',
+      quality: brand.quality || 4.0,
+      products: categoryProducts,
+      predictedSize: prediction.size,
+      confidence: prediction.confidence,
+      scores: {
+        fit: combinedFitScore,
+        quality: qualityScore,
+        products: productScore,
+        value: valueScore
+      },
+      finalScore
+    };
+  });
+  
+  // Sort by final score (highest first)
+  return brandScores.sort((a, b) => b.finalScore - a.finalScore);
 };

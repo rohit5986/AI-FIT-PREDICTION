@@ -54,16 +54,11 @@ export default function MeasurementScreen({ navigation }) {
       return;
     }
 
-    if (!brandId) {
-      setError('Please select a brand before continuing.');
-      return;
-    }
-
     setError('');
-    navigation.navigate('Result', {
+    // Navigate to AI brand recommendations
+    navigation.navigate('BrandRecommendation', {
       measurements: parsed,
-      category,
-      brandId
+      category
     });
   };
 
@@ -94,20 +89,11 @@ export default function MeasurementScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Enter Your Measurements</Text>
         <Text style={styles.subtitle}>
-          Use a measuring tape for best results. Required fields: height, chest, waist.
+          AI will recommend the best brand for your size. Use a measuring tape for best results.
         </Text>
 
-        <Text style={styles.sectionLabel}>Category</Text>
+        <Text style={styles.sectionLabel}>Clothing Type</Text>
         {renderChips(categoryOptions, category, setCategory)}
-
-        <Text style={styles.sectionLabel}>Brand</Text>
-        {renderChips(brandOptions, brandId, setBrandId)}
-        <Pressable
-          style={styles.linkButton}
-          onPress={() => navigation.navigate('Admin')}
-        >
-          <Text style={styles.linkText}>Manage brand size data</Text>
-        </Pressable>
 
         <TextInput
           style={styles.input}
