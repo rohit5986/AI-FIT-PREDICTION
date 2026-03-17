@@ -5,9 +5,17 @@ import {
   StyleSheet,
   Pressable,
   ScrollView,
-  FlatList,
+  Alert,
+  Linking,
 } from 'react-native';
 import { CartContext } from './CartContext';
+
+const formatINR = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
 
 export default function ProductDetailScreen({ route, navigation }) {
   const { product } = route.params;
@@ -37,6 +45,20 @@ export default function ProductDetailScreen({ route, navigation }) {
       removeFromWishlist(product.id);
     } else {
       addToWishlist(product);
+    }
+  };
+
+  const handleOpenSource = async () => {
+    if (!product?.source) return;
+    try {
+      const canOpen = await Linking.canOpenURL(product.source);
+      if (!canOpen) {
+        Alert.alert('Link unavailable', 'This product link could not be opened on this device.');
+        return;
+      }
+      await Linking.openURL(product.source);
+    } catch {
+      Alert.alert('Failed to open link', 'Please try again in a moment.');
     }
   };
 
@@ -78,11 +100,11 @@ export default function ProductDetailScreen({ route, navigation }) {
 
         {/* Price Section */}
         <View style={styles.priceSection}>
-          <Text style={styles.currentPrice}>${product.price}</Text>
+          <Text style={styles.currentPrice}>{formatINR(product.price)}</Text>
           {product.originalPrice > product.price && (
             <>
-              <Text style={styles.originalPrice}>${product.originalPrice}</Text>
-              <Text style={styles.savingText}>You save ${(product.originalPrice - product.price).toFixed(2)}</Text>
+              <Text style={styles.originalPrice}>{formatINR(product.originalPrice)}</Text>
+              <Text style={styles.savingText}>You save {formatINR(product.originalPrice - product.price)}</Text>
             </>
           )}
         </View>
@@ -177,19 +199,15 @@ export default function ProductDetailScreen({ route, navigation }) {
         </View>
       </View>
 
-      {/* Meesho Link Section */}
-      <View style={styles.meeshoSection}>
-        <Text style={styles.sectionTitle}>Find Similar on Meesho</Text>
-        <Pressable
-          style={styles.meeshoButton}
-          onPress={() => {
-            // In a real app, this would open WebView or deep link
-            alert(`Opening Meesho search for: ${product.name}`);
-          }}
-        >
-          <Text style={styles.meeshoButtonText}>🔗 View on Meesho</Text>
-        </Pressable>
-      </View>
+      {/* Source Link Section */}
+      {product.source ? (
+        <View style={styles.sourceSection}>
+          <Text style={styles.sectionTitle}>Original Product Page</Text>
+          <Pressable style={styles.sourceButton} onPress={handleOpenSource}>
+            <Text style={styles.sourceButtonText}>🔗 Open Product Page</Text>
+          </Pressable>
+        </View>
+      ) : null}
 
       {/* Action Buttons */}
       <View style={styles.actionSection}>
@@ -478,20 +496,20 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'right'
   },
-  meeshoSection: {
+  sourceSection: {
     backgroundColor: '#fff',
     padding: 16,
     marginTop: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb'
   },
-  meeshoButton: {
+  sourceButton: {
     backgroundColor: '#fbbf24',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center'
   },
-  meeshoButtonText: {
+  sourceButtonText: {
     color: '#92400e',
     fontSize: 14,
     fontWeight: '700'

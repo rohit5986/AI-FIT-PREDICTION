@@ -2,6 +2,13 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { CartContext } from './CartContext';
 
+const formatINR = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
+
 export default function WishlistScreen({ navigation }) {
   const { wishlist, removeFromWishlist, addToCart } = useContext(CartContext);
 
@@ -21,9 +28,9 @@ export default function WishlistScreen({ navigation }) {
         </View>
 
         <View style={styles.priceRow}>
-          <Text style={styles.price}>${item.price}</Text>
+          <Text style={styles.price}>{formatINR(item.price)}</Text>
           {item.originalPrice > item.price && (
-            <Text style={styles.originalPrice}>${item.originalPrice}</Text>
+            <Text style={styles.originalPrice}>{formatINR(item.originalPrice)}</Text>
           )}
         </View>
       </View>

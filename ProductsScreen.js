@@ -7,17 +7,40 @@ import {
   Pressable,
   TextInput,
   ScrollView,
+  Alert,
+  Linking,
 } from 'react-native';
 import { CartContext } from './CartContext';
 import { PRODUCTS, searchProducts, getProductsByCategory } from './productsData';
 import { CATEGORIES } from './sizeCharts';
+
+const formatINR = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
 
 export default function ProductsScreen({ navigation }) {
   const { addToCart, isInWishlist, addToWishlist, removeFromWishlist, getCartCount } =
     useContext(CartContext);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedBrand, setSelectedBrand] = useState('all');
   const [sortBy, setSortBy] = useState('popular');
+
+  const brandOptions = useMemo(() => {
+    const uniqueBrandIds = [...new Set(PRODUCTS.map((item) => item.brandId).filter(Boolean))];
+    return uniqueBrandIds
+      .sort((a, b) => a.localeCompare(b))
+      .map((brandId) => ({
+        id: brandId,
+        label: brandId
+          .split('-')
+          .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : ''))
+          .join(' ')
+      }));
+  }, []);
 
   const displayProducts = useMemo(() => {
     let filtered = searchQuery
@@ -25,6 +48,10 @@ export default function ProductsScreen({ navigation }) {
       : selectedCategory === 'all'
         ? PRODUCTS
         : getProductsByCategory(selectedCategory);
+
+    if (selectedBrand !== 'all') {
+      filtered = filtered.filter((item) => item.brandId === selectedBrand);
+    }
 
     // Sort
     if (sortBy === 'price-low') {
@@ -42,7 +69,21 @@ export default function ProductsScreen({ navigation }) {
     }
 
     return filtered;
-  }, [searchQuery, selectedCategory, sortBy]);
+  }, [searchQuery, selectedCategory, selectedBrand, sortBy]);
+
+  const openProductSource = async (url) => {
+    if (!url) return;
+    try {
+      const canOpen = await Linking.canOpenURL(url);
+      if (!canOpen) {
+        Alert.alert('Link unavailable', 'This product link could not be opened on this device.');
+        return;
+      }
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert('Failed to open link', 'Please try again in a moment.');
+    }
+  };
 
   const renderProductCard = ({ item }) => {
     const discountPercent = Math.round(
@@ -87,9 +128,9 @@ export default function ProductsScreen({ navigation }) {
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.price}>${item.price}</Text>
+            <Text style={styles.price}>{formatINR(item.price)}</Text>
             {item.originalPrice > item.price && (
-              <Text style={styles.originalPrice}>${item.originalPrice}</Text>
+              <Text style={styles.originalPrice}>{formatINR(item.originalPrice)}</Text>
             )}
           </View>
 
@@ -104,6 +145,18 @@ export default function ProductsScreen({ navigation }) {
           >
             <Text style={styles.addButtonText}>Add to Cart</Text>
           </Pressable>
+
+          {item.source ? (
+            <Pressable
+              style={styles.sourceButton}
+              onPress={(event) => {
+                event?.stopPropagation?.();
+                openProductSource(item.source);
+              }}
+            >
+              <Text style={styles.sourceButtonText}>Open Product Page</Text>
+            </Pressable>
+          ) : null}
         </View>
       </Pressable>
     );
@@ -170,6 +223,42 @@ export default function ProductsScreen({ navigation }) {
         ))}
       </ScrollView>
 
+      {/* Brand Filter */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.brandsScroll}>
+        <Pressable
+          style={[styles.brandChip, selectedBrand === 'all' && styles.brandChipActive]}
+          onPress={() => setSelectedBrand('all')}
+        >
+          <Text
+            style={[
+              styles.brandChipText,
+              selectedBrand === 'all' && styles.brandChipTextActive
+            ]}
+          >
+            All Brands
+          </Text>
+        </Pressable>
+        {brandOptions.map((brand) => (
+          <Pressable
+            key={brand.id}
+            style={[
+              styles.brandChip,
+              selectedBrand === brand.id && styles.brandChipActive
+            ]}
+            onPress={() => setSelectedBrand(brand.id)}
+          >
+            <Text
+              style={[
+                styles.brandChipText,
+                selectedBrand === brand.id && styles.brandChipTextActive
+              ]}
+            >
+              {brand.label}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+
       {/* Sort Options */}
       <ScrollView
         horizontal
@@ -202,6 +291,7 @@ export default function ProductsScreen({ navigation }) {
       </ScrollView>
 
       {/* Products Grid */}
+      <Text style={styles.resultCount}>{displayProducts.length} products found</Text>
       {displayProducts.length > 0 ? (
         <FlatList
           data={displayProducts}
@@ -218,6 +308,7 @@ export default function ProductsScreen({ navigation }) {
             onPress={() => {
               setSearchQuery('');
               setSelectedCategory('all');
+              setSelectedBrand('all');
             }}
           >
             <Text style={styles.emptyLink}>Clear filters</Text>
@@ -308,6 +399,41 @@ const styles = StyleSheet.create({
   },
   categoryChipTextActive: {
     color: '#fff'
+  },
+  brandsScroll: {
+    backgroundColor: '#fff',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb'
+  },
+  brandChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    backgroundColor: '#fff'
+  },
+  brandChipActive: {
+    backgroundColor: '#111827',
+    borderColor: '#111827'
+  },
+  brandChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151'
+  },
+  brandChipTextActive: {
+    color: '#fff'
+  },
+  resultCount: {
+    fontSize: 12,
+    color: '#6b7280',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 6
   },
   sortScroll: {
     backgroundColor: '#fff',
@@ -449,6 +575,19 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#fff',
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  sourceButton: {
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: '#1f2937',
+    borderRadius: 6,
+    alignItems: 'center',
+    paddingVertical: 7
+  },
+  sourceButtonText: {
+    color: '#1f2937',
     fontSize: 11,
     fontWeight: '700'
   },

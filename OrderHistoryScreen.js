@@ -2,6 +2,13 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, SectionList } from 'react-native';
 import { CartContext } from './CartContext';
 
+const formatINR = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
+
 export default function OrderHistoryScreen({ navigation }) {
   const { orders } = useContext(CartContext);
 
@@ -22,7 +29,7 @@ export default function OrderHistoryScreen({ navigation }) {
         <Text style={styles.productSpecs}>
           Qty: {product.quantity} | Size: {product.size}
         </Text>
-        <Text style={styles.productPrice}>${(product.price * product.quantity).toFixed(2)}</Text>
+        <Text style={styles.productPrice}>{formatINR(product.price * product.quantity)}</Text>
       </View>
     </View>
   );
@@ -59,13 +66,13 @@ export default function OrderHistoryScreen({ navigation }) {
       {/* Order Total */}
       <View style={styles.orderTotal}>
         <Text style={styles.totalLabel}>Order Total:</Text>
-        <Text style={styles.totalPrice}>${order.total.toFixed(2)}</Text>
+        <Text style={styles.totalPrice}>{formatINR(order.total)}</Text>
       </View>
 
       {/* Actions */}
       <View style={styles.orderActions}>
         <Pressable style={styles.detailBtn} onPress={() => {
-          alert(`Order Details:\n\nOrder ID: ${order.id}\nStatus: ${order.status}\nTotal: $${order.total.toFixed(2)}\nItems: ${order.items.length}`);
+          alert(`Order Details:\n\nOrder ID: ${order.id}\nStatus: ${order.status}\nTotal: ${formatINR(order.total)}\nItems: ${order.items.length}`);
         }}>
           <Text style={styles.detailBtnText}>View Details</Text>
         </Pressable>

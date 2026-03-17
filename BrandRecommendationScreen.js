@@ -3,6 +3,15 @@ import { View, Text, StyleSheet, Pressable, ScrollView, FlatList } from 'react-n
 import { BrandDataContext } from './BrandDataContext';
 import { getRecommendedBrands, CATEGORIES } from './sizeCharts';
 
+const formatINR = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
+
+const formatPriceRange = (value) => String(value || '').replace(/\$/g, '₹');
+
 export default function BrandRecommendationScreen({ route, navigation }) {
   const { brands } = useContext(BrandDataContext);
   const params = route?.params || {};
@@ -18,6 +27,26 @@ export default function BrandRecommendationScreen({ route, navigation }) {
   }, [measurements, categoryId, brands]);
 
   const categoryLabel = CATEGORIES.find(c => c.id === categoryId)?.label || 'Clothing';
+
+  if (recommendations.length === 0) {
+    return (
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>AI Brand Recommendations</Text>
+        <Text style={styles.subtitle}>For: {categoryLabel}</Text>
+
+        <View style={styles.emptyCard}>
+          <Text style={styles.emptyTitle}>No Size-Chart Brands Yet</Text>
+          <Text style={styles.emptyText}>
+            Product data is available in Shop. AI recommendations require brand size charts.
+          </Text>
+        </View>
+
+        <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonText}>← Back</Text>
+        </Pressable>
+      </ScrollView>
+    );
+  }
 
   const renderStars = (rating) => {
     const fullStars = Math.floor(rating);
@@ -74,7 +103,7 @@ export default function BrandRecommendationScreen({ route, navigation }) {
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Price Range:</Text>
-          <Text style={styles.price}>{item.priceRange}</Text>
+          <Text style={styles.price}>{formatPriceRange(item.priceRange)}</Text>
         </View>
       </View>
 
@@ -99,7 +128,7 @@ export default function BrandRecommendationScreen({ route, navigation }) {
                   {renderStars(product.rating)} {product.rating.toFixed(1)}
                 </Text>
               </View>
-              <Text style={styles.productPrice}>${product.price}</Text>
+              <Text style={styles.productPrice}>{formatINR(product.price)}</Text>
             </View>
           ))}
         </View>
@@ -456,5 +485,24 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center'
+  },
+  emptyCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb'
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8
+  },
+  emptyText: {
+    fontSize: 13,
+    color: '#6b7280',
+    lineHeight: 18
   }
 });

@@ -1,90 +1,12 @@
+import { INDIAN_BRANDS } from './indianBrandsData';
+
 export const CATEGORIES = [
   { id: 'top', label: 'Top (T-shirt/Shirt)' },
   { id: 'bottom', label: 'Bottom (Jeans/Pants)' }
 ];
 
 export const BRANDS = [
-  {
-    id: 'urbanthread',
-    name: 'UrbanThread',
-    priceRange: '$35-$85',
-    quality: 4.5,
-    description: 'Urban streetwear with premium quality',
-    chart: {
-      top: [
-        { size: 'S', chest: [86, 92], waist: [72, 78] },
-        { size: 'M', chest: [93, 100], waist: [79, 86] },
-        { size: 'L', chest: [101, 108], waist: [87, 95] },
-        { size: 'XL', chest: [109, 116], waist: [96, 104] }
-      ],
-      bottom: [
-        { size: 'S', waist: [72, 78], weight: [55, 65] },
-        { size: 'M', waist: [79, 86], weight: [66, 75] },
-        { size: 'L', waist: [87, 95], weight: [76, 86] },
-        { size: 'XL', waist: [96, 104], weight: [87, 98] }
-      ]
-    },
-    products: [
-      { id: 'ub-tshirt-01', name: 'Classic T-Shirt', category: 'top', price: 35, quality: 4.5, rating: 4.7 },
-      { id: 'ub-shirt-01', name: 'Oxford Button Down', category: 'top', price: 65, quality: 4.8, rating: 4.8 },
-      { id: 'ub-jeans-01', name: 'Slim Fit Jeans', category: 'bottom', price: 75, quality: 4.6, rating: 4.6 },
-      { id: 'ub-chinos-01', name: 'Chino Pants', category: 'bottom', price: 60, quality: 4.4, rating: 4.5 }
-    ]
-  },
-  {
-    id: 'streetline',
-    name: 'Streetline',
-    priceRange: '$25-$65',
-    quality: 4.0,
-    description: 'Casual streetwear with great value',
-    chart: {
-      top: [
-        { size: 'S', chest: [84, 90], waist: [70, 76] },
-        { size: 'M', chest: [91, 98], waist: [77, 84] },
-        { size: 'L', chest: [99, 106], waist: [85, 93] },
-        { size: 'XL', chest: [107, 114], waist: [94, 102] }
-      ],
-      bottom: [
-        { size: 'S', waist: [70, 76], weight: [54, 64] },
-        { size: 'M', waist: [77, 84], weight: [65, 74] },
-        { size: 'L', waist: [85, 93], weight: [75, 85] },
-        { size: 'XL', waist: [94, 102], weight: [86, 97] }
-      ]
-    },
-    products: [
-      { id: 'sl-tshirt-01', name: 'Graphic T-Shirt', category: 'top', price: 25, quality: 4.0, rating: 4.3 },
-      { id: 'sl-hoodie-01', name: 'Hoodie', category: 'top', price: 45, quality: 4.1, rating: 4.4 },
-      { id: 'sl-jeans-01', name: 'Regular Jeans', category: 'bottom', price: 50, quality: 3.9, rating: 4.2 },
-      { id: 'sl-shorts-01', name: 'Cargo Shorts', category: 'bottom', price: 40, quality: 3.8, rating: 4.0 }
-    ]
-  },
-  {
-    id: 'novawear',
-    name: 'NovaWear',
-    priceRange: '$45-$95',
-    quality: 4.7,
-    description: 'Premium fit with exceptional quality',
-    chart: {
-      top: [
-        { size: 'S', chest: [88, 94], waist: [74, 80] },
-        { size: 'M', chest: [95, 102], waist: [81, 88] },
-        { size: 'L', chest: [103, 110], waist: [89, 97] },
-        { size: 'XL', chest: [111, 118], waist: [98, 106] }
-      ],
-      bottom: [
-        { size: 'S', waist: [74, 80], weight: [56, 66] },
-        { size: 'M', waist: [81, 88], weight: [67, 76] },
-        { size: 'L', waist: [89, 97], weight: [77, 87] },
-        { size: 'XL', waist: [98, 106], weight: [88, 99] }
-      ]
-    },
-    products: [
-      { id: 'nw-tshirt-01', name: 'Premium T-Shirt', category: 'top', price: 45, quality: 4.8, rating: 4.9 },
-      { id: 'nw-polo-01', name: 'Polo Shirt', category: 'top', price: 65, quality: 4.7, rating: 4.8 },
-      { id: 'nw-jeans-01', name: 'Skinny Fit Jeans', category: 'bottom', price: 85, quality: 4.9, rating: 4.9 },
-      { id: 'nw-trousers-01', name: 'Tailored Trousers', category: 'bottom', price: 95, quality: 5.0, rating: 4.9 }
-    ]
-  }
+  ...INDIAN_BRANDS
 ];
 
 const toNumber = (value) => {

@@ -15,7 +15,24 @@ export default function ResultScreen({ route, navigation }) {
   const params = route?.params || {};
   const measurements = params.measurements || {};
   const categoryId = params.category || CATEGORIES[0].id;
-  const brandId = params.brandId || brands[0]?.id || BRANDS[0].id;
+  const brandId = params.brandId || brands[0]?.id || BRANDS[0]?.id;
+
+  if (!brandId) {
+    return (
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Size Recommendation</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>No Brand Chart Data</Text>
+          <Text style={styles.cardText}>
+            AI size prediction needs brand size-chart data. You can still shop products in the Shop tab.
+          </Text>
+        </View>
+        <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+      </ScrollView>
+    );
+  }
 
   const brand = getBrandById(brandId, brands);
   const category = getCategoryById(categoryId);

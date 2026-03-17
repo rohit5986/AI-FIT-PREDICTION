@@ -2,6 +2,13 @@ import React, { useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, ScrollView } from 'react-native';
 import { CartContext } from './CartContext';
 
+const formatINR = (value) =>
+  new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
+
 export default function CartScreen({ navigation }) {
   const { cart, removeFromCart, updateCartQuantity, getCartTotal, clearCart, placeOrder } =
     useContext(CartContext);
@@ -17,7 +24,7 @@ export default function CartScreen({ navigation }) {
       paymentMethod: 'Card'
     });
     
-    alert(`Order placed successfully!\nOrder ID: ${order.id}\nTotal: $${order.total.toFixed(2)}`);
+    alert(`Order placed successfully!\nOrder ID: ${order.id}\nTotal: ${formatINR(order.total)}`);
     navigation.navigate('OrderHistory');
   };
 
@@ -52,7 +59,7 @@ export default function CartScreen({ navigation }) {
       </View>
 
       <View style={styles.itemRight}>
-        <Text style={styles.itemPrice}>${(item.price * item.quantity).toFixed(2)}</Text>
+        <Text style={styles.itemPrice}>{formatINR(item.price * item.quantity)}</Text>
         <Pressable
           onPress={() => removeFromCart(item.id)}
           style={styles.removeBtn}
@@ -106,15 +113,13 @@ export default function CartScreen({ navigation }) {
 
         <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Subtotal:</Text>
-          <Text style={styles.summaryValue}>
-            ${(total + discount).toFixed(2)}
-          </Text>
+          <Text style={styles.summaryValue}>{formatINR(total + discount)}</Text>
         </View>
 
         {discount > 0 && (
           <View style={styles.summaryRow}>
             <Text style={styles.discountLabel}>Discount:</Text>
-            <Text style={styles.discountValue}>-${discount.toFixed(2)}</Text>
+            <Text style={styles.discountValue}>-{formatINR(discount)}</Text>
           </View>
         )}
 
@@ -127,7 +132,7 @@ export default function CartScreen({ navigation }) {
 
         <View style={styles.summaryRow}>
           <Text style={styles.totalLabel}>Total:</Text>
-          <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
+          <Text style={styles.totalValue}>{formatINR(total)}</Text>
         </View>
       </View>
 

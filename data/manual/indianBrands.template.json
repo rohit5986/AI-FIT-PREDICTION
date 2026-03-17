@@ -1,0 +1,52 @@
+{
+  "brands": [
+    {
+      "id": "brand-id",
+      "name": "Brand Name",
+      "priceRange": "Rs.999-Rs.2999",
+      "quality": 4.2,
+      "description": "Official size chart mapped from brand source",
+      "source": "https://brand-site.com/size-guide",
+      "chart": {
+        "top": [
+          { "size": "S", "chest": [90, 95], "waist": [76, 81] },
+          { "size": "M", "chest": [96, 101], "waist": [82, 87] },
+          { "size": "L", "chest": [102, 107], "waist": [88, 93] },
+          { "size": "XL", "chest": [108, 113], "waist": [94, 99] }
+        ],
+        "bottom": [
+          { "size": "S", "waist": [76, 81], "weight": [56, 66] },
+          { "size": "M", "waist": [82, 87], "weight": [67, 77] },
+          { "size": "L", "waist": [88, 93], "weight": [78, 88] },
+          { "size": "XL", "waist": [94, 99], "weight": [89, 99] }
+        ]
+      },
+      "products": [
+        { "id": "brand-top-01", "name": "Product Name", "category": "top", "price": 1499, "quality": 4.2, "rating": 4.3 }
+      ]
+    }
+  ],
+  "products": [
+    {
+      "id": "brand-top-001",
+      "brandId": "brand-id",
+      "name": "Product Name",
+      "category": "top",
+      "price": 1499,
+      "originalPrice": 1999,
+      "quality": 4.2,
+      "rating": 4.3,
+      "reviews": 100,
+      "image": "👕",
+      "colors": ["Black", "White"],
+      "sizes": ["S", "M", "L", "XL"],
+      "description": "Short description",
+      "details": {
+        "material": "Cotton blend",
+        "fit": "Regular",
+        "care": "Machine wash",
+        "inStock": 50
+      }
+    }
+  ]
+}

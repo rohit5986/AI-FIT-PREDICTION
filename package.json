@@ -7,9 +7,13 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "data:scrape": "node scripts/scrapeListings.mjs",
+    "data:build-india": "node scripts/buildIndianDataModule.mjs data/manual/indianBrands.template.json indianBrandsData.js",
+    "data:build-products-only": "node scripts/buildIndianProductsOnly.mjs --in data/scraped --out indianBrandsData.js"
   },
   "dependencies": {
+    "@react-navigation/bottom-tabs": "^7.15.5",
     "@react-navigation/native": "^7.1.17",
     "@react-navigation/stack": "^7.4.8",
     "expo": "~54.0.7",
@@ -31,7 +35,6 @@
   "author": "",
   "type": "commonjs",
   "devDependencies": {
-    "@react-navigation/bottom-tabs": "^7.15.5",
     "baseline-browser-mapping": "^2.10.8"
   }
 }

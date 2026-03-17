@@ -37,6 +37,11 @@ export default function MeasurementScreen({ navigation }) {
   };
 
   const handleSubmit = () => {
+    if (!brands || brands.length === 0) {
+      setError('No brand size-chart data is available yet. Add chart data in Admin to use AI Fit Predictor.');
+      return;
+    }
+
     const parsed = {
       height: toNumber(height),
       weight: toNumber(weight),
