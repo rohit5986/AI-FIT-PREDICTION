@@ -31,6 +31,16 @@ function slugify(value) {
     .slice(0, 40);
 }
 
+function inferPlatform(sourceUrl) {
+  if (!sourceUrl || typeof sourceUrl !== 'string') return 'unknown';
+  const lowered = sourceUrl.toLowerCase();
+  if (lowered.includes('myntra.com')) return 'myntra';
+  if (lowered.includes('ajio.com')) return 'ajio';
+  if (lowered.includes('tatacliq.com')) return 'tatacliq';
+  if (lowered.includes('bewakoof.com')) return 'bewakoof';
+  return 'generic';
+}
+
 async function readJsonFiles(dirPath) {
   const absolute = path.resolve(dirPath);
   let entries = [];
@@ -64,6 +74,7 @@ function buildProducts(documents) {
   for (const doc of documents) {
     const brandId = String(doc.parsed.brandId || '').trim();
     const category = String(doc.parsed.category || '').trim();
+    const platform = String(doc.parsed.platform || '').trim();
     const scrapedProducts = Array.isArray(doc.parsed.products) ? doc.parsed.products : [];
 
     if (!brandId || !['top', 'bottom'].includes(category)) {
@@ -77,6 +88,8 @@ function buildProducts(documents) {
       const name = String(entry?.name || '').trim();
       const priceNum = Number(entry?.price);
       const sourceUrl = String(entry?.source || '').trim();
+      const imageUrl = String(entry?.imageUrl || '').trim();
+      const sourcePlatform = platform || inferPlatform(sourceUrl);
       if (!name || !Number.isFinite(priceNum) || priceNum <= 0) continue;
 
       const sequence = counters.get(keyBase);
@@ -90,6 +103,7 @@ function buildProducts(documents) {
       products.push({
         id,
         brandId,
+        platform: sourcePlatform,
         name,
         category,
         price: roundedPrice,
@@ -98,6 +112,7 @@ function buildProducts(documents) {
         rating: 4.2,
         reviews: 80 + sequence * 7,
         image: category === 'top' ? '👕' : '👖',
+        imageUrl: imageUrl || undefined,
         colors: ['Black', 'White', 'Navy'],
         sizes: ['S', 'M', 'L', 'XL'],
         source: sourceUrl || undefined,
@@ -114,7 +129,7 @@ function buildProducts(documents) {
 
   const dedupe = new Map();
   for (const item of products) {
-    const key = `${item.brandId}::${item.name.toLowerCase()}::${item.category}`;
+    const key = `${item.brandId}::${item.platform}::${item.name.toLowerCase()}::${item.category}`;
     if (!dedupe.has(key)) dedupe.set(key, item);
   }
 

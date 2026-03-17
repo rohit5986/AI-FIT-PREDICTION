@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, SectionList } from 'react-native';
 import { CartContext } from './CartContext';
+import ProductImage from './ProductImage';
 
 const formatINR = (value) =>
   new Intl.NumberFormat('en-IN', {
@@ -23,7 +24,16 @@ export default function OrderHistoryScreen({ navigation }) {
 
   const renderOrderItem = ({ item: product, order }) => (
     <View style={styles.productInOrder}>
-      <Text style={styles.productEmoji}>{product.image}</Text>
+      <View style={styles.productImageBox}>
+        <ProductImage
+          imageUrl={product.imageUrl}
+          fallback={product.image}
+          containerStyle={styles.productImageFrame}
+          imageStyle={styles.productImageAsset}
+          fallbackTextStyle={styles.productEmoji}
+          resizeMode="contain"
+        />
+      </View>
       <View style={styles.productInfo}>
         <Text style={styles.productName} numberOfLines={2}>{product.name}</Text>
         <Text style={styles.productSpecs}>
@@ -60,7 +70,9 @@ export default function OrderHistoryScreen({ navigation }) {
       {/* Products in Order */}
       <Text style={styles.productsLabel}>Items ({order.items.length}):</Text>
       {order.items.map((product) => (
-        <renderOrderItem key={product.id} item={product} order={order} />
+        <View key={`${order.id}-${product.id}`}>
+          {renderOrderItem({ item: product, order })}
+        </View>
       ))}
 
       {/* Order Total */}
@@ -236,9 +248,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#f3f4f6'
   },
+  productImageBox: {
+    width: 46,
+    height: 46,
+    marginRight: 10
+  },
+  productImageFrame: {
+    width: '100%',
+    height: '100%'
+  },
+  productImageAsset: {
+    width: '100%',
+    height: '100%'
+  },
   productEmoji: {
     fontSize: 32,
-    marginRight: 10
+    lineHeight: 36
   },
   productInfo: {
     flex: 1

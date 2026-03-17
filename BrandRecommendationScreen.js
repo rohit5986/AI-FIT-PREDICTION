@@ -98,12 +98,24 @@ export default function BrandRecommendationScreen({ route, navigation }) {
           </Text>
         </View>
         <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Data Coverage:</Text>
+          <Text style={styles.coverage}>{Math.round((item.measurementCoverage || 0) * 100)}%</Text>
+        </View>
+        <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Quality Rating:</Text>
           <Text style={styles.rating}>{item.quality.toFixed(1)} ★</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Price Range:</Text>
           <Text style={styles.price}>{formatPriceRange(item.priceRange)}</Text>
+        </View>
+
+        <View style={styles.fitInsightBox}>
+          <Text style={styles.fitInsightLabel}>Fit Insight</Text>
+          <Text style={styles.fitInsightText}>{item.fitReason}</Text>
+          {item.secondarySize ? (
+            <Text style={styles.secondarySizeText}>Close alternative size: {item.secondarySize}</Text>
+          ) : null}
         </View>
       </View>
 
@@ -365,6 +377,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#fee2e2',
     color: '#991b1b'
   },
+  coverage: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1d4ed8'
+  },
   rating: {
     fontSize: 13,
     fontWeight: '600',
@@ -414,6 +431,31 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#6b7280',
     fontWeight: '600'
+  },
+  fitInsightBox: {
+    backgroundColor: '#eff6ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    padding: 10,
+    marginTop: 10
+  },
+  fitInsightLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1d4ed8',
+    marginBottom: 4
+  },
+  fitInsightText: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: '#1e3a8a'
+  },
+  secondarySizeText: {
+    marginTop: 6,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#1f2937'
   },
   productsContainer: {
     backgroundColor: '#f0fdf4',

@@ -54,6 +54,7 @@ export default function ResultScreen({ route, navigation }) {
       <Text style={styles.size}>{prediction.size}</Text>
       <Text style={styles.brandLabel}>{brand.name}</Text>
       <Text style={styles.confidence}>Confidence: {prediction.confidence}</Text>
+      <Text style={styles.coverage}>Data Coverage: {Math.round((prediction.measurementCoverage || 0) * 100)}%</Text>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Your Inputs</Text>
@@ -62,6 +63,14 @@ export default function ResultScreen({ route, navigation }) {
         <Text style={styles.cardText}>Weight: {measurements.weight || 'Not provided'} kg</Text>
         <Text style={styles.cardText}>Chest: {measurements.chest} cm</Text>
         <Text style={styles.cardText}>Waist: {measurements.waist} cm</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>AI Fit Explanation</Text>
+        <Text style={styles.cardText}>{prediction.fitReason}</Text>
+        {prediction.secondarySize ? (
+          <Text style={styles.alternativeText}>Close alternative size: {prediction.secondarySize}</Text>
+        ) : null}
       </View>
 
       <View style={styles.card}>
@@ -95,6 +104,7 @@ const styles = StyleSheet.create({
   size: { fontSize: 48, fontWeight: '800', textAlign: 'center', color: '#1f2937' },
   brandLabel: { textAlign: 'center', fontSize: 16, marginTop: 4, color: '#6b7280' },
   confidence: { textAlign: 'center', fontSize: 14, marginTop: 6, color: '#92400e' },
+  coverage: { textAlign: 'center', fontSize: 12, marginTop: 4, color: '#1d4ed8', fontWeight: '600' },
   card: {
     marginTop: 18,
     backgroundColor: '#fff',
@@ -105,6 +115,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontSize: 16, fontWeight: '600', marginBottom: 8, color: '#111827' },
   cardText: { fontSize: 14, color: '#374151', marginBottom: 4 },
+  alternativeText: { fontSize: 13, color: '#1f2937', marginTop: 6, fontWeight: '600' },
   equivalentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

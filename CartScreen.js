@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, ScrollView } from 'react-native';
 import { CartContext } from './CartContext';
+import ProductImage from './ProductImage';
 
 const formatINR = (value) =>
   new Intl.NumberFormat('en-IN', {
@@ -31,7 +32,14 @@ export default function CartScreen({ navigation }) {
   const renderCartItem = ({ item }) => (
     <View style={styles.cartItem}>
       <View style={styles.itemImage}>
-        <Text style={styles.emoji}>{item.image}</Text>
+        <ProductImage
+          imageUrl={item.imageUrl}
+          fallback={item.image}
+          containerStyle={styles.itemImageFrame}
+          imageStyle={styles.itemImageAsset}
+          fallbackTextStyle={styles.emoji}
+          resizeMode="contain"
+        />
       </View>
 
       <View style={styles.itemDetails}>
@@ -211,6 +219,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12
+  },
+  itemImageFrame: {
+    width: '100%',
+    height: '100%'
+  },
+  itemImageAsset: {
+    width: '100%',
+    height: '100%'
   },
   emoji: {
     fontSize: 40

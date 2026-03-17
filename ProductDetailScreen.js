@@ -9,6 +9,7 @@ import {
   Linking,
 } from 'react-native';
 import { CartContext } from './CartContext';
+import ProductImage from './ProductImage';
 
 const formatINR = (value) =>
   new Intl.NumberFormat('en-IN', {
@@ -66,7 +67,14 @@ export default function ProductDetailScreen({ route, navigation }) {
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Product Image */}
       <View style={styles.imageSection}>
-        <Text style={styles.emoji}>{product.image}</Text>
+        <ProductImage
+          imageUrl={product.imageUrl}
+          fallback={product.image}
+          containerStyle={styles.detailImageFrame}
+          imageStyle={styles.detailImage}
+          fallbackTextStyle={styles.emoji}
+          resizeMode="contain"
+        />
         {discountPercent > 0 && (
           <View style={styles.discountBadge}>
             <Text style={styles.discountText}>{discountPercent}% OFF</Text>
@@ -246,6 +254,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
     position: 'relative'
+  },
+  detailImageFrame: {
+    width: '72%',
+    aspectRatio: 1,
+    maxWidth: 320
+  },
+  detailImage: {
+    width: '100%',
+    height: '100%'
   },
   emoji: {
     fontSize: 100

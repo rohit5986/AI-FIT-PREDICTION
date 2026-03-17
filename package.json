@@ -9,6 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "data:scrape": "node scripts/scrapeListings.mjs",
+    "data:refresh-scraped": "node scripts/refreshScrapedFiles.mjs",
     "data:build-india": "node scripts/buildIndianDataModule.mjs data/manual/indianBrands.template.json indianBrandsData.js",
     "data:build-products-only": "node scripts/buildIndianProductsOnly.mjs --in data/scraped --out indianBrandsData.js"
   },
@@ -17,6 +18,7 @@
     "@react-navigation/native": "^7.1.17",
     "@react-navigation/stack": "^7.4.8",
     "expo": "~54.0.7",
+    "expo-image-picker": "~17.0.10",
     "expo-status-bar": "~3.0.8",
     "native": "^0.3.3",
     "react": "19.1.0",

@@ -2,6 +2,8 @@
 
 This guide lets you add Indian brands quickly with documentation and repeatable scripts.
 
+For full technical details, see docs/MULTI_PLATFORM_DATA_PIPELINE.md.
+
 ## Goal
 
 - Scrape product names and prices fast.
@@ -26,6 +28,36 @@ Notes:
 
 - This generates indianBrandsData.js with INDIAN_BRANDS = [] and only INDIAN_PRODUCTS.
 - You can add size charts later without redoing product scraping.
+- Scraper auto-detects marketplace from URL (myntra, ajio, tatacliq, generic) and stores platform in output JSON.
+
+## Multi-Platform Examples
+
+Use one JSON per platform/source page, then rebuild once.
+
+Myntra:
+
+npm run data:scrape -- --url "https://www.myntra.com/raymond-men-shirts" --brandId raymond --category top --out data/scraped/raymond-myntra-top.json
+
+Ajio:
+
+npm run data:scrape -- --url "https://www.ajio.com/men-tshirts/c/830216001" --brandId ajio-menswear --category top --out data/scraped/ajio-menswear-top.json
+
+Bewakoof:
+
+npm run data:scrape -- --url "https://www.bewakoof.com/men-t-shirts" --brandId bewakoof-menswear --category top --out data/scraped/bewakoof-menswear-top.json
+
+Tata CLiQ:
+
+npm run data:scrape -- --url "https://www.tatacliq.com/clothing/c-msh11" --brandId tatacliq-menswear --category top --out data/scraped/tatacliq-menswear-top.json
+
+Then rebuild:
+
+npm run data:build-products-only
+
+Notes:
+
+- Some platforms may block scraping from server-side fetch (403/captcha), including Ajio in many environments. In that case use another source page or run manually-curated JSON for that platform.
+- Platform metadata is written into scraped files and propagated into generated products.
 
 ## Files Added
 

@@ -35,47 +35,136 @@ const isWithinRange = (value, range) => {
   return value >= min && value <= max;
 };
 
-const pickBestEntry = (entries, category, measurements) => {
-  if (!entries || entries.length === 0) return null;
+const SIZE_ORDER = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL'];
+
+const getSizeRank = (sizeValue) => {
+  const size = String(sizeValue || '').trim().toUpperCase();
+  const index = SIZE_ORDER.indexOf(size);
+  return index >= 0 ? index : Number.POSITIVE_INFINITY;
+};
+
+const evaluateEntry = (entry, category, measurements) => {
   const chest = toNumber(measurements.chest);
   const waist = toNumber(measurements.waist);
   const weight = toNumber(measurements.weight);
 
-  let best = null;
-  let bestScore = Number.POSITIVE_INFINITY;
+  const metricCandidates = category === 'top'
+    ? [
+        { id: 'chest', label: 'Chest', value: chest, range: entry.chest, weight: 1, unit: 'cm' },
+        { id: 'waist', label: 'Waist', value: waist, range: entry.waist, weight: 0.5, unit: 'cm' }
+      ]
+    : [
+        { id: 'waist', label: 'Waist', value: waist, range: entry.waist, weight: 1, unit: 'cm' },
+        { id: 'weight', label: 'Weight', value: weight, range: entry.weight, weight: 0.5, unit: 'kg' }
+      ];
 
-  entries.forEach((entry) => {
-    let score = 0;
-    let weightSum = 0;
+  const details = metricCandidates
+    .filter((metric) => metric.value !== null && Array.isArray(metric.range))
+    .map((metric) => {
+      const distance = distanceToRange(metric.value, metric.range);
+      return {
+        ...metric,
+        distance,
+        inRange: distance === 0
+      };
+    });
 
-    if (category === 'top') {
-      if (chest !== null && entry.chest) {
-        score += distanceToRange(chest, entry.chest);
-        weightSum += 1;
-      }
-      if (waist !== null && entry.waist) {
-        score += distanceToRange(waist, entry.waist) * 0.5;
-        weightSum += 0.5;
-      }
-    } else {
-      if (waist !== null && entry.waist) {
-        score += distanceToRange(waist, entry.waist);
-        weightSum += 1;
-      }
-      if (weight !== null && entry.weight) {
-        score += distanceToRange(weight, entry.weight) * 0.5;
-        weightSum += 0.5;
-      }
+  const weightSum = details.reduce((sum, metric) => sum + metric.weight, 0);
+  if (weightSum === 0) {
+    return {
+      score: Number.POSITIVE_INFINITY,
+      metricsUsed: 0,
+      details: []
+    };
+  }
+
+  const weightedDistance = details.reduce((sum, metric) => {
+    return sum + (metric.distance * metric.weight);
+  }, 0);
+
+  return {
+    score: weightedDistance / weightSum,
+    metricsUsed: details.length,
+    details
+  };
+};
+
+const buildFitReason = ({ category, size, details }) => {
+  if (!Array.isArray(details) || details.length === 0) {
+    return 'Limited measurement inputs were available. Recommendation is based on fallback matching.';
+  }
+
+  const primaryMetricId = category === 'top' ? 'chest' : 'waist';
+  const primaryMetric = details.find((metric) => metric.id === primaryMetricId) || details[0];
+  const [min, max] = primaryMetric.range;
+  const value = Number(primaryMetric.value);
+
+  if (primaryMetric.inRange) {
+    return `${primaryMetric.label} ${value}${primaryMetric.unit} is within ${min}-${max}${primaryMetric.unit} for size ${size}.`;
+  }
+
+  if (value < min) {
+    const gap = (min - value).toFixed(1);
+    return `${primaryMetric.label} is ${gap}${primaryMetric.unit} below the ${min}-${max}${primaryMetric.unit} range for size ${size}.`;
+  }
+
+  const gap = (value - max).toFixed(1);
+  return `${primaryMetric.label} is ${gap}${primaryMetric.unit} above the ${min}-${max}${primaryMetric.unit} range for size ${size}.`;
+};
+
+const pickAlternativeSize = ({ selectedEntry, selectedScore, alternatives, category, details }) => {
+  if (!selectedEntry || !Array.isArray(alternatives) || alternatives.length === 0) return '';
+
+  const secondary = alternatives[0];
+  if (!secondary || !secondary.entry || !secondary.entry.size) return '';
+
+  const currentRank = getSizeRank(selectedEntry.size);
+  const secondaryRank = getSizeRank(secondary.entry.size);
+
+  const primaryMetricId = category === 'top' ? 'chest' : 'waist';
+  const primaryMetric = Array.isArray(details)
+    ? details.find((metric) => metric.id === primaryMetricId)
+    : null;
+
+  if (primaryMetric && !primaryMetric.inRange && Number.isFinite(currentRank) && Number.isFinite(secondaryRank)) {
+    if (primaryMetric.value > primaryMetric.range[1] && secondaryRank > currentRank) {
+      return secondary.entry.size;
     }
-
-    const normalizedScore = weightSum > 0 ? score / weightSum : Number.POSITIVE_INFINITY;
-    if (normalizedScore < bestScore) {
-      bestScore = normalizedScore;
-      best = entry;
+    if (primaryMetric.value < primaryMetric.range[0] && secondaryRank < currentRank) {
+      return secondary.entry.size;
     }
-  });
+  }
 
-  return { entry: best, score: bestScore };
+  if (
+    Number.isFinite(selectedScore)
+    && Number.isFinite(secondary.score)
+    && (secondary.score - selectedScore <= 0.5)
+  ) {
+    return secondary.entry.size;
+  }
+
+  return '';
+};
+
+const pickBestEntry = (entries, category, measurements) => {
+  if (!entries || entries.length === 0) return null;
+  const ranked = entries
+    .map((entry) => {
+      const evaluation = evaluateEntry(entry, category, measurements);
+      return { entry, ...evaluation };
+    })
+    .filter((item) => Number.isFinite(item.score))
+    .sort((a, b) => a.score - b.score);
+
+  if (ranked.length === 0) return null;
+
+  return {
+    entry: ranked[0].entry,
+    score: ranked[0].score,
+    details: ranked[0].details,
+    metricsUsed: ranked[0].metricsUsed,
+    alternatives: ranked.slice(1, 3)
+  };
 };
 
 export const getBrandById = (brandId, brandsOverride) => {
@@ -93,25 +182,50 @@ export const predictSize = ({ brandId, category, measurements, brandsOverride })
   const result = pickBestEntry(chart, category, measurements);
 
   if (!result || !result.entry) {
-    return { size: 'M', confidence: 'Low', score: Number.POSITIVE_INFINITY };
+    return {
+      size: 'M',
+      confidence: 'Low',
+      score: Number.POSITIVE_INFINITY,
+      fitReason: 'No matching size-chart entry was found for the current inputs.',
+      secondarySize: '',
+      measurementCoverage: 0
+    };
   }
 
-  const chest = toNumber(measurements.chest);
-  const waist = toNumber(measurements.waist);
-  const weight = toNumber(measurements.weight);
-  let inRange = false;
+  const primaryMetricId = category === 'top' ? 'chest' : 'waist';
+  const primaryMetric = Array.isArray(result.details)
+    ? result.details.find((metric) => metric.id === primaryMetricId)
+    : null;
 
-  if (category === 'top' && chest !== null) {
-    inRange = isWithinRange(chest, result.entry.chest);
-  } else if (category === 'bottom' && waist !== null) {
-    inRange = isWithinRange(waist, result.entry.waist);
-  } else if (weight !== null && result.entry.weight) {
-    inRange = isWithinRange(weight, result.entry.weight);
+  let confidence = 'Low';
+  if (primaryMetric?.inRange && result.score <= 1.5) {
+    confidence = 'High';
+  } else if (result.score <= 2.5) {
+    confidence = 'Medium';
   }
 
-  const confidence = inRange ? 'High' : result.score <= 2 ? 'Medium' : 'Low';
+  if (result.metricsUsed <= 1 && confidence === 'High') {
+    confidence = 'Medium';
+  }
 
-  return { size: result.entry.size, confidence, score: result.score };
+  const measurementCoverage = Math.min(1, (result.metricsUsed || 0) / 2);
+  const fitReason = buildFitReason({ category, size: result.entry.size, details: result.details });
+  const secondarySize = pickAlternativeSize({
+    selectedEntry: result.entry,
+    selectedScore: result.score,
+    alternatives: result.alternatives,
+    category,
+    details: result.details
+  });
+
+  return {
+    size: result.entry.size,
+    confidence,
+    score: result.score,
+    fitReason,
+    secondarySize,
+    measurementCoverage
+  };
 };
 
 export const getEquivalentSizes = ({ category, measurements, brandsOverride }) => {
@@ -191,15 +305,7 @@ export const validateBrandData = (brands) => {
  */
 export const getRecommendedBrands = ({ measurements, category, brandsOverride }) => {
   const brands = getBrandsSafe(brandsOverride);
-  
-  // Normalize measurements for ML model
-  const normalizedMeasurements = {
-    chest: toNumber(measurements.chest) / 100 || 0,
-    waist: toNumber(measurements.waist) / 100 || 0,
-    weight: toNumber(measurements.weight) / 100 || 0,
-    height: toNumber(measurements.height) / 200 || 0,
-  };
-  
+
   // Score each brand
   const brandScores = brands.map((brand) => {
     // 1. FIT SCORE (40% weight) - How well measurements match
@@ -209,35 +315,41 @@ export const getRecommendedBrands = ({ measurements, category, brandsOverride })
       measurements,
       brandsOverride: brands
     });
-    
+
     const fitConfidenceMap = { 'High': 1.0, 'Medium': 0.7, 'Low': 0.4 };
     const fitScore = fitConfidenceMap[prediction.confidence] || 0.4;
-    const normalizedFitScore = Math.max(0, 1 - (prediction.score / 10)); // Fit improves as score decreases
-    const combinedFitScore = (fitScore + normalizedFitScore) / 2; // Average the two fit metrics
-    
+    const normalizedFitScore = Number.isFinite(prediction.score)
+      ? Math.max(0, 1 - (prediction.score / 10))
+      : 0;
+    const coverageScore = prediction.measurementCoverage || 0;
+    const combinedFitScore =
+      (fitScore * 0.55) +
+      (normalizedFitScore * 0.35) +
+      (coverageScore * 0.10);
+
     // 2. QUALITY SCORE (30% weight) - Brand quality rating
     const qualityScore = (brand.quality || 4.0) / 5.0;
-    
+
     // 3. PRODUCT SCORE (20% weight) - Average rating of available products
     const categoryProducts = (brand.products || []).filter(p => p.category === category);
     const productScore = categoryProducts.length > 0 
       ? categoryProducts.reduce((sum, p) => sum + (p.rating || 4.0), 0) / (categoryProducts.length * 5.0)
       : 0.5;
-    
+
     // 4. VALUE SCORE (10% weight) - Price to quality ratio
     const priceBase = 50; // Reference price
     const avgProductPrice = categoryProducts.length > 0 
       ? categoryProducts.reduce((sum, p) => sum + (p.price || 50), 0) / categoryProducts.length
       : 50;
     const valueScore = Math.max(0.3, 1 - ((avgProductPrice - priceBase) / 100));
-    
+
     // FINAL SCORE: Weighted combination
     const finalScore = 
       (combinedFitScore * 0.40) + 
       (qualityScore * 0.30) + 
       (productScore * 0.20) + 
       (valueScore * 0.10);
-    
+
     return {
       brandId: brand.id,
       name: brand.name,
@@ -247,6 +359,9 @@ export const getRecommendedBrands = ({ measurements, category, brandsOverride })
       products: categoryProducts,
       predictedSize: prediction.size,
       confidence: prediction.confidence,
+      fitReason: prediction.fitReason,
+      secondarySize: prediction.secondarySize,
+      measurementCoverage: prediction.measurementCoverage,
       scores: {
         fit: combinedFitScore,
         quality: qualityScore,
@@ -256,7 +371,7 @@ export const getRecommendedBrands = ({ measurements, category, brandsOverride })
       finalScore
     };
   });
-  
+
   // Sort by final score (highest first)
   return brandScores.sort((a, b) => b.finalScore - a.finalScore);
 };

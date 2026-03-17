@@ -14,6 +14,7 @@ import ProductDetailScreen from './ProductDetailScreen';
 import CartScreen from './CartScreen';
 import WishlistScreen from './WishlistScreen';
 import OrderHistoryScreen from './OrderHistoryScreen';
+import StyleAIScreen from './StyleAIScreen';
 import { BrandDataProvider } from './BrandDataContext';
 import { CartProvider } from './CartContext';
 
@@ -105,6 +106,14 @@ export default function App() {
               options={{
                 tabBarLabel: 'Fit AI',
                 tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>🎯</Text>
+              }}
+            />
+            <Tab.Screen
+              name="StyleAI"
+              component={StyleAIScreen}
+              options={{
+                tabBarLabel: 'Style AI',
+                tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>🧠</Text>
               }}
             />
             <Tab.Screen

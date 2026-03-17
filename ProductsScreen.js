@@ -13,6 +13,7 @@ import {
 import { CartContext } from './CartContext';
 import { PRODUCTS, searchProducts, getProductsByCategory } from './productsData';
 import { CATEGORIES } from './sizeCharts';
+import ProductImage from './ProductImage';
 
 const formatINR = (value) =>
   new Intl.NumberFormat('en-IN', {
@@ -97,7 +98,14 @@ export default function ProductsScreen({ navigation }) {
         onPress={() => navigation.navigate('ProductDetail', { product: item })}
       >
         <View style={styles.imageContainer}>
-          <Text style={styles.emoji}>{item.image}</Text>
+          <ProductImage
+            imageUrl={item.imageUrl}
+            fallback={item.image}
+            containerStyle={styles.productImageFrame}
+            imageStyle={styles.productImage}
+            fallbackTextStyle={styles.emoji}
+            resizeMode="contain"
+          />
           {discountPercent > 0 && (
             <View style={styles.discountBadge}>
               <Text style={styles.discountText}>{discountPercent}% OFF</Text>
@@ -490,6 +498,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative'
+  },
+  productImageFrame: {
+    width: '100%',
+    height: '100%'
+  },
+  productImage: {
+    width: '100%',
+    height: '100%'
   },
   emoji: {
     fontSize: 60
