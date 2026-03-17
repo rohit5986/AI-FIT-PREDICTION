@@ -29,5 +29,9 @@
   "description": "",
   "keywords": [],
   "author": "",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "@react-navigation/bottom-tabs": "^7.15.5",
+    "baseline-browser-mapping": "^2.10.8"
+  }
 }
