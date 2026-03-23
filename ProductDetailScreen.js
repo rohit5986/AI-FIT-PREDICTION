@@ -8,7 +8,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import { CartContext } from './CartContext';
+import { WishlistContext } from './WishlistContext';
 import ProductImage from './ProductImage';
 
 const formatINR = (value) =>
@@ -20,26 +20,15 @@ const formatINR = (value) =>
 
 export default function ProductDetailScreen({ route, navigation }) {
   const { product } = route.params;
-  const { addToCart, isInWishlist, addToWishlist, removeFromWishlist } = useContext(CartContext);
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useContext(WishlistContext);
   
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || 'M');
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || 'Default');
-  const [quantity, setQuantity] = useState(1);
   const inWishlist = isInWishlist(product.id);
 
   const discountPercent = Math.round(
     ((product.originalPrice - product.price) / product.originalPrice) * 100
   );
-
-  const handleAddToCart = () => {
-    addToCart(product, quantity, selectedSize, selectedColor);
-    alert(`${quantity} item(s) added to cart!`);
-  };
-
-  const handleBuyNow = () => {
-    addToCart(product, quantity, selectedSize, selectedColor);
-    navigation.navigate('Cart');
-  };
 
   const handleWishlist = () => {
     if (inWishlist) {
@@ -170,26 +159,6 @@ export default function ProductDetailScreen({ route, navigation }) {
         </View>
       </View>
 
-      {/* Quantity Selector */}
-      <View style={styles.quantitySection}>
-        <Text style={styles.sectionTitle}>Quantity</Text>
-        <View style={styles.quantityControl}>
-          <Pressable
-            style={styles.quantityBtn}
-            onPress={() => setQuantity(Math.max(1, quantity - 1))}
-          >
-            <Text style={styles.quantityBtnText}>−</Text>
-          </Pressable>
-          <Text style={styles.quantityValue}>{quantity}</Text>
-          <Pressable
-            style={styles.quantityBtn}
-            onPress={() => setQuantity(quantity + 1)}
-          >
-            <Text style={styles.quantityBtnText}>+</Text>
-          </Pressable>
-        </View>
-      </View>
-
       {/* Product Details */}
       <View style={styles.detailsSection}>
         <Text style={styles.sectionTitle}>Product Details</Text>
@@ -219,11 +188,22 @@ export default function ProductDetailScreen({ route, navigation }) {
 
       {/* Action Buttons */}
       <View style={styles.actionSection}>
-        <Pressable style={styles.addToCartBtn} onPress={handleAddToCart}>
-          <Text style={styles.addToCartText}>Add to Cart</Text>
-        </Pressable>
-        <Pressable style={styles.buyNowBtn} onPress={handleBuyNow}>
-          <Text style={styles.buyNowText}>Buy Now</Text>
+        <Pressable
+          style={styles.buyNowBtn}
+          onPress={() => {
+            if (product.source) {
+              handleOpenSource();
+              return;
+            }
+
+            if (!inWishlist) {
+              handleWishlist();
+            }
+          }}
+        >
+          <Text style={styles.buyNowText}>
+            {product.source ? 'Go to Product Page' : inWishlist ? 'Saved in Wishlist' : 'Save to Wishlist'}
+          </Text>
         </Pressable>
       </View>
 
@@ -532,31 +512,15 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   actionSection: {
-    flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 16,
     marginTop: 8,
-    gap: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb'
   },
-  addToCartBtn: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-    paddingVertical: 14,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#3b82f6',
-    alignItems: 'center'
-  },
-  addToCartText: {
-    color: '#3b82f6',
-    fontSize: 14,
-    fontWeight: '700'
-  },
   buyNowBtn: {
-    flex: 1,
+    width: '100%',
     backgroundColor: '#3b82f6',
     paddingVertical: 14,
     borderRadius: 8,

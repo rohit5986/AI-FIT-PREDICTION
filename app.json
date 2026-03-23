@@ -11,7 +11,14 @@
       "supportsTablet": true
     },
     "android": {
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.vijay.aifitpredictor",
+      "googleServicesFile": "./google-services.json"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f671c358-939f-4741-99a8-821620202cdc"
+      }
     }
   }
 }

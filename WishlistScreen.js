@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
-import { CartContext } from './CartContext';
+import { WishlistContext } from './WishlistContext';
 import ProductImage from './ProductImage';
 
 const formatINR = (value) =>
@@ -11,7 +11,14 @@ const formatINR = (value) =>
   }).format(Number(value) || 0);
 
 export default function WishlistScreen({ navigation }) {
-  const { wishlist, removeFromWishlist, addToCart } = useContext(CartContext);
+  const { wishlist, removeFromWishlist } = useContext(WishlistContext);
+
+  const openProduct = (product) => {
+    navigation.navigate('Shopping', {
+      screen: 'ProductDetail',
+      params: { product }
+    });
+  };
 
   const renderWishlistItem = ({ item }) => (
     <View style={styles.wishlistItem}>
@@ -46,12 +53,9 @@ export default function WishlistScreen({ navigation }) {
       <View style={styles.itemActions}>
         <Pressable
           style={styles.addBtn}
-          onPress={() => {
-            addToCart(item, 1);
-            alert('Added to cart!');
-          }}
+          onPress={() => openProduct(item)}
         >
-          <Text style={styles.addBtnText}>Add</Text>
+          <Text style={styles.addBtnText}>View</Text>
         </Pressable>
 
         <Pressable
@@ -72,7 +76,7 @@ export default function WishlistScreen({ navigation }) {
         <Text style={styles.emptyText}>Add items to your wishlist to save them for later!</Text>
         <Pressable
           style={styles.exploreBtnContainer}
-          onPress={() => navigation.navigate('Products')}
+          onPress={() => navigation.navigate('Shopping', { screen: 'ProductsScreen' })}
         >
           <Text style={styles.exploreBtn}>Explore Products</Text>
         </Pressable>
@@ -97,7 +101,7 @@ export default function WishlistScreen({ navigation }) {
       <View style={styles.footer}>
         <Pressable
           style={styles.actionBtn}
-          onPress={() => navigation.navigate('Products')}
+          onPress={() => navigation.navigate('Shopping', { screen: 'ProductsScreen' })}
         >
           <Text style={styles.actionBtnText}>Continue Shopping</Text>
         </Pressable>

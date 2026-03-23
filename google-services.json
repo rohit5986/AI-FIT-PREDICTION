@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "494126964859",
+    "project_id": "ai-fit-predict",
+    "storage_bucket": "ai-fit-predict.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:494126964859:android:41b244322d63e1301c02de",
+        "android_client_info": {
+          "package_name": "com.vijay.aifitpredictor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjXp82tUYN_Jom7H7ANuZyrMc7A2MoS4E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

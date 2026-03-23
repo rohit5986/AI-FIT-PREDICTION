@@ -10,7 +10,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import { CartContext } from './CartContext';
+import { WishlistContext } from './WishlistContext';
 import { PRODUCTS, searchProducts, getProductsByCategory } from './productsData';
 import { CATEGORIES } from './sizeCharts';
 import ProductImage from './ProductImage';
@@ -23,8 +23,8 @@ const formatINR = (value) =>
   }).format(Number(value) || 0);
 
 export default function ProductsScreen({ navigation }) {
-  const { addToCart, isInWishlist, addToWishlist, removeFromWishlist, getCartCount } =
-    useContext(CartContext);
+  const { isInWishlist, addToWishlist, removeFromWishlist } =
+    useContext(WishlistContext);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedBrand, setSelectedBrand] = useState('all');
@@ -145,13 +145,12 @@ export default function ProductsScreen({ navigation }) {
           <Text style={styles.quality}>Quality: {item.quality}/5</Text>
 
           <Pressable
-            style={styles.addButton}
+            style={styles.viewButton}
             onPress={() => {
-              addToCart(item, 1);
-              alert('Added to cart!');
+              navigation.navigate('ProductDetail', { product: item });
             }}
           >
-            <Text style={styles.addButtonText}>Add to Cart</Text>
+            <Text style={styles.viewButtonText}>View Details</Text>
           </Pressable>
 
           {item.source ? (
@@ -174,13 +173,10 @@ export default function ProductsScreen({ navigation }) {
     <View style={styles.container}>
       {/* Header with search */}
       <View style={styles.header}>
-        <Text style={styles.title}>Shop Now</Text>
-        <Pressable
-          style={styles.cartIcon}
-          onPress={() => navigation.navigate('Cart')}
-        >
-          <Text style={styles.cartText}>🛒 {getCartCount()}</Text>
-        </Pressable>
+        <View>
+          <Text style={styles.title}>Shop Now</Text>
+          <Text style={styles.headerSubtitle}>Curated catalog for quick product redirection</Text>
+        </View>
       </View>
 
       {/* Search Bar */}
@@ -347,16 +343,11 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#1a1a1a'
   },
-  cartIcon: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  cartText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14
+  headerSubtitle: {
+    marginTop: 2,
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500'
   },
   searchContainer: {
     backgroundColor: '#fff',
@@ -583,13 +574,13 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginBottom: 8
   },
-  addButton: {
+  viewButton: {
     backgroundColor: '#3b82f6',
     paddingVertical: 8,
     borderRadius: 6,
     alignItems: 'center'
   },
-  addButtonText: {
+  viewButtonText: {
     color: '#fff',
     fontSize: 11,
     fontWeight: '700'

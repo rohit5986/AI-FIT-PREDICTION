@@ -1,0 +1,27 @@
+# EAS upload excludes (separate from git rules)
+
+# Node/Expo artifacts
+node_modules/
+.expo/
+
+# Local environments and IDE
+.venv/
+ai_backend/.venv/
+.vscode/
+
+# Python backend (not needed for Expo app build)
+ai_backend/
+/ai_backend/
+
+# Data pipeline assets not needed at runtime
+data/
+/data/
+data/**
+scripts/
+docs/
+/scripts/
+/docs/
+
+# Python caches
+**/__pycache__/
+**/*.pyc
