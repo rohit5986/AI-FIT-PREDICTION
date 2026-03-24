@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Constants from 'expo-constants';
+import { UserProfileContext } from './UserProfileContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -48,6 +49,11 @@ function getDefaultBackendUrl() {
 }
 
 const DEFAULT_BACKEND_URL = getDefaultBackendUrl();
+const CHAT_QUICK_PROMPTS = [
+  'Review this outfit for office',
+  'Suggest better color combinations',
+  'Give footwear and accessory tips'
+];
 
 function normalizeBaseUrl(value) {
   return String(value || '').replace(/\/+$/, '');
@@ -70,12 +76,16 @@ function buildPhoneNetworkHelp(baseUrl) {
 }
 
 export default function StyleAIScreen() {
+  const { profile } = useContext(UserProfileContext);
   const [backendUrl, setBackendUrl] = useState(DEFAULT_BACKEND_URL);
   const [analysisMode, setAnalysisMode] = useState('auto');
   const [selectedImage, setSelectedImage] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingConnection, setIsCheckingConnection] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState([]);
+  const [isChatLoading, setIsChatLoading] = useState(false);
 
   const heroAnim = useRef(new Animated.Value(0)).current;
   const configAnim = useRef(new Animated.Value(0)).current;
@@ -92,6 +102,10 @@ export default function StyleAIScreen() {
 
   const modelStatusEndpoint = useMemo(() => {
     return `${normalizeBaseUrl(backendUrl)}/model-status`;
+  }, [backendUrl]);
+
+  const chatEndpoint = useMemo(() => {
+    return `${normalizeBaseUrl(backendUrl)}/chatbot`;
   }, [backendUrl]);
 
   useEffect(() => {
@@ -140,7 +154,97 @@ export default function StyleAIScreen() {
     if (!result.canceled && result.assets?.length > 0) {
       setSelectedImage(result.assets[0]);
       setAnalysis(null);
+      setChatMessages([]);
+      setChatInput('');
       resultAnim.setValue(0);
+    }
+  };
+
+  const toNumber = (value) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  const buildChatContext = () => {
+    const measurements = profile?.measurements || {};
+    return {
+      measurements: {
+        height: toNumber(measurements.height),
+        weight: toNumber(measurements.weight),
+        chest: toNumber(measurements.chest),
+        waist: toNumber(measurements.waist)
+      },
+      preferred_brands: Array.isArray(profile?.preferredBrands) ? profile.preferredBrands : [],
+      audience: profile?.audience || 'all',
+      style_direction: analysis?.style_direction || '',
+      dominant_colors: Array.isArray(analysis?.dominant_colors)
+        ? analysis.dominant_colors.map((item) => item?.name).filter(Boolean)
+        : []
+    };
+  };
+
+  const sendChatMessage = async (presetText) => {
+    const messageText = String(presetText ?? chatInput).trim();
+    if (!messageText || isChatLoading) return;
+
+    const userMessage = {
+      id: `u-${Date.now()}`,
+      role: 'user',
+      text: messageText
+    };
+
+    setChatMessages((prev) => [...prev, userMessage]);
+    setChatInput('');
+    setIsChatLoading(true);
+
+    try {
+      const response = await fetch(chatEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          message: messageText,
+          context: buildChatContext()
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.detail || 'Chat request failed.');
+      }
+
+      const nextQuestions = Array.isArray(data?.suggested_questions)
+        ? data.suggested_questions.slice(0, 3)
+        : [];
+      const assistantText = nextQuestions.length > 0
+        ? `${data?.reply || 'I could not generate a response right now.'}\n\nTry next:\n- ${nextQuestions.join('\n- ')}`
+        : (data?.reply || 'I could not generate a response right now.');
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: 'assistant',
+          text: assistantText
+        }
+      ]);
+    } catch (error) {
+      const errorText = isLikelyNetworkError(error)
+        ? 'Could not connect to chatbot backend. Check URL and network settings.'
+        : (error.message || 'Something went wrong.');
+
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `e-${Date.now()}`,
+          role: 'assistant',
+          text: errorText
+        }
+      ]);
+    } finally {
+      setIsChatLoading(false);
     }
   };
 
@@ -179,6 +283,13 @@ export default function StyleAIScreen() {
       }
 
       setAnalysis(data);
+      setChatMessages([
+        {
+          id: `seed-${Date.now()}`,
+          role: 'assistant',
+          text: 'You can now ask chat questions about this look. Try: "Review this outfit for office", "Suggest better colors", or "What size advice fits this style?"'
+        }
+      ]);
     } catch (error) {
       if (isLikelyNetworkError(error)) {
         Alert.alert('Analysis failed', buildPhoneNetworkHelp(normalizeBaseUrl(backendUrl)));
@@ -390,7 +501,12 @@ export default function StyleAIScreen() {
               },
             ]}
           >
-            <Text style={styles.sectionHeading}>AI Summary</Text>
+            <View style={styles.summaryHeaderRow}>
+              <Text style={styles.sectionHeading}>AI Summary</Text>
+              <View style={styles.liveBadge}>
+                <Text style={styles.liveBadgeText}>LIVE ANALYSIS</Text>
+              </View>
+            </View>
             <Text style={styles.summaryText}>{analysis.caption}</Text>
 
             <View style={styles.statRow}>
@@ -409,23 +525,91 @@ export default function StyleAIScreen() {
             ) : null}
 
             <Text style={styles.sectionTitle}>Dominant Colors</Text>
-            {analysis.dominant_colors?.map((color) => (
-              <View key={color.hex} style={styles.colorRow}>
-                <View style={[styles.colorSwatch, { backgroundColor: color.hex }]} />
-                <Text style={styles.valueText}>{color.name} ({color.hex})</Text>
-                <Text style={styles.percentText}>{color.percentage}%</Text>
-              </View>
-            ))}
+            <View style={styles.colorGrid}>
+              {analysis.dominant_colors?.map((color) => (
+                <View key={color.hex} style={styles.colorCard}>
+                  <View style={[styles.colorSwatch, { backgroundColor: color.hex }]} />
+                  <Text style={styles.colorNameText}>{color.name}</Text>
+                  <Text style={styles.colorHexText}>{color.hex}</Text>
+                  <Text style={styles.percentText}>{color.percentage}%</Text>
+                </View>
+              ))}
+            </View>
 
             <Text style={styles.sectionTitle}>Color Suggestions</Text>
-            {analysis.color_palette_advice?.map((tip, index) => (
-              <Text key={`tip-${index}`} style={styles.bulletText}>• {tip}</Text>
-            ))}
+            <View style={styles.tipPanel}>
+              {analysis.color_palette_advice?.map((tip, index) => (
+                <Text key={`tip-${index}`} style={styles.bulletText}>• {tip}</Text>
+              ))}
+            </View>
 
             <Text style={styles.sectionTitle}>Outfit Ideas</Text>
-            {analysis.outfit_ideas?.map((idea, index) => (
-              <Text key={`idea-${index}`} style={styles.bulletText}>• {idea}</Text>
-            ))}
+            <View style={styles.tipPanel}>
+              {analysis.outfit_ideas?.map((idea, index) => (
+                <Text key={`idea-${index}`} style={styles.bulletText}>• {idea}</Text>
+              ))}
+            </View>
+
+            <Text style={styles.sectionTitle}>Style Chat</Text>
+            <View style={styles.chatPanel}>
+              <Text style={styles.chatPanelHint}>Continue this look in chat with personalized guidance.</Text>
+
+              <View style={styles.quickPromptRow}>
+                {CHAT_QUICK_PROMPTS.map((prompt) => (
+                <Pressable
+                  key={prompt}
+                  onPress={() => sendChatMessage(prompt)}
+                  style={styles.quickPromptChip}
+                >
+                  <Text style={styles.quickPromptText}>{prompt}</Text>
+                </Pressable>
+                ))}
+              </View>
+
+              <View style={styles.chatMessagesWrap}>
+                {chatMessages.map((msg) => (
+                  <View
+                    key={msg.id}
+                    style={[
+                      styles.chatBubble,
+                      msg.role === 'user' ? styles.chatBubbleUser : styles.chatBubbleAssistant
+                    ]}
+                  >
+                    <Text style={msg.role === 'user' ? styles.chatRoleUser : styles.chatRoleAssistant}>
+                      {msg.role === 'user' ? 'YOU' : 'STYLE AI'}
+                    </Text>
+                    <Text style={msg.role === 'user' ? styles.chatTextUser : styles.chatTextAssistant}>
+                      {msg.text}
+                    </Text>
+                  </View>
+                ))}
+
+                {isChatLoading ? (
+                  <View style={[styles.chatBubble, styles.chatBubbleAssistant, styles.chatLoadingBubble]}>
+                    <ActivityIndicator size="small" color="#8d390c" />
+                    <Text style={styles.chatLoadingText}>Thinking...</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              <View style={styles.chatInputRow}>
+                <TextInput
+                  style={styles.chatInput}
+                  value={chatInput}
+                  onChangeText={setChatInput}
+                  placeholder="Ask follow-up about this look..."
+                  placeholderTextColor="#936b5e"
+                  multiline
+                />
+                <Pressable
+                  style={[styles.chatSendBtn, (!chatInput.trim() || isChatLoading) && styles.btnDisabled]}
+                  onPress={() => sendChatMessage()}
+                  disabled={!chatInput.trim() || isChatLoading}
+                >
+                  <Text style={styles.chatSendBtnText}>Send</Text>
+                </Pressable>
+              </View>
+            </View>
           </Animated.View>
         ) : null}
       </ScrollView>
@@ -538,6 +722,25 @@ const styles = StyleSheet.create({
     color: '#111936',
     marginBottom: 10,
     letterSpacing: 0.3,
+  },
+  summaryHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  liveBadge: {
+    borderWidth: 1,
+    borderColor: '#f8b49a',
+    backgroundColor: '#fff0e8',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  liveBadgeText: {
+    fontSize: 9,
+    letterSpacing: 0.7,
+    color: '#8d390c',
+    fontWeight: '800',
   },
   label: {
     fontSize: 11,
@@ -707,7 +910,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   sectionTitle: {
-    marginTop: 12,
+    marginTop: 14,
     marginBottom: 6,
     fontSize: 13,
     fontWeight: '700',
@@ -730,6 +933,20 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginBottom: 3,
   },
+  colorGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  colorCard: {
+    width: (SCREEN_WIDTH - 72) / 3,
+    minWidth: 94,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#f1cdbf',
+    backgroundColor: '#fffaf7',
+    padding: 8,
+  },
   colorRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -737,10 +954,149 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   colorSwatch: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     borderRadius: 5,
     borderWidth: 1,
     borderColor: '#d1d5db',
+    marginBottom: 6,
+  },
+  colorNameText: {
+    color: '#432a1f',
+    fontWeight: '700',
+    fontSize: 11,
+  },
+  colorHexText: {
+    color: '#8f6f62',
+    fontSize: 10,
+    marginTop: 2,
+  },
+  tipPanel: {
+    borderWidth: 1,
+    borderColor: '#f3cdc0',
+    backgroundColor: '#fffaf7',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 2,
+  },
+  chatPanel: {
+    marginTop: 2,
+    borderWidth: 1,
+    borderColor: '#efc0ae',
+    backgroundColor: '#fff4ee',
+    borderRadius: 12,
+    padding: 10,
+  },
+  chatPanelHint: {
+    color: '#754536',
+    fontSize: 11,
+    marginBottom: 8,
+  },
+  chatMessagesWrap: {
+    borderWidth: 1,
+    borderColor: '#f2cbbd',
+    borderRadius: 10,
+    backgroundColor: '#fff9f6',
+    padding: 8,
+    marginBottom: 8,
+  },
+  quickPromptRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  quickPromptChip: {
+    borderWidth: 1,
+    borderColor: '#f0b7a2',
+    backgroundColor: '#fff0e8',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  quickPromptText: {
+    fontSize: 11,
+    color: '#7f3e29',
+    fontWeight: '700',
+  },
+  chatBubble: {
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 8,
+    maxWidth: '92%',
+  },
+  chatBubbleUser: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#7d2c12',
+  },
+  chatBubbleAssistant: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff9f6',
+    borderWidth: 1,
+    borderColor: '#f1cdbf',
+  },
+  chatTextUser: {
+    color: '#fff6f2',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  chatTextAssistant: {
+    color: '#46261b',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  chatRoleUser: {
+    color: '#ffd8cb',
+    fontSize: 9,
+    letterSpacing: 0.8,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  chatRoleAssistant: {
+    color: '#8d5a48',
+    fontSize: 9,
+    letterSpacing: 0.8,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  chatLoadingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  chatLoadingText: {
+    color: '#8d390c',
+    fontSize: 12,
+  },
+  chatInputRow: {
+    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  chatInput: {
+    flex: 1,
+    maxHeight: 90,
+    borderWidth: 1,
+    borderColor: '#e9b8a7',
+    borderRadius: 10,
+    backgroundColor: '#fffaf7',
+    color: '#46261b',
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    fontSize: 12,
+  },
+  chatSendBtn: {
+    borderRadius: 10,
+    backgroundColor: '#7d2c12',
+    paddingHorizontal: 13,
+    paddingVertical: 10,
+  },
+  chatSendBtnText: {
+    color: '#fff6f2',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
