@@ -11,6 +11,16 @@ import {
 import { WishlistContext } from './WishlistContext';
 import ProductImage from './ProductImage';
 
+const COLORS = {
+  bg: '#f4f6fb',
+  card: '#ffffff',
+  text: '#0f172a',
+  muted: '#64748b',
+  border: '#dbe2ee',
+  accent: '#0f766e',
+  accentSoft: '#d1fae5'
+};
+
 const formatINR = (value) =>
   new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -221,18 +231,18 @@ export default function ProductDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f5f2'
+    backgroundColor: COLORS.bg
   },
   contentContainer: {
     paddingBottom: 30
   },
   imageSection: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.card,
     paddingVertical: 40,
     justifyContent: 'center',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    borderBottomColor: COLORS.border,
     position: 'relative'
   },
   detailImageFrame: {
@@ -262,10 +272,10 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   infoSection: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.card,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
+    borderBottomColor: COLORS.border
   },
   titleRow: {
     flexDirection: 'row',
@@ -279,12 +289,12 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1a1a1a',
+    color: COLORS.text,
     marginBottom: 4
   },
   brandText: {
     fontSize: 13,
-    color: '#6b7280',
+    color: COLORS.muted,
     lineHeight: 18
   },
   wishlistBtn: {
@@ -318,20 +328,20 @@ const styles = StyleSheet.create({
   },
   reviewsText: {
     fontSize: 12,
-    color: '#6b7280',
+    color: COLORS.muted,
     marginRight: 12
   },
   qualityBadge: {
-    backgroundColor: '#f0fdf4',
+    backgroundColor: COLORS.accentSoft,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#bbf7d0'
+    borderColor: '#99f6e4'
   },
   qualityText: {
     fontSize: 11,
-    color: '#065f46',
+    color: '#115e59',
     fontWeight: '600'
   },
   priceSection: {
@@ -340,7 +350,7 @@ const styles = StyleSheet.create({
   currentPrice: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#1f2937',
+    color: COLORS.text,
     marginBottom: 4
   },
   originalPrice: {
@@ -368,16 +378,16 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   selectionSection: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.card,
     padding: 16,
     marginTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
+    borderBottomColor: COLORS.border
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#111827',
+    color: COLORS.text,
     marginBottom: 10
   },
   sizeGrid: {
@@ -390,24 +400,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: COLORS.border,
     borderRadius: 8,
     marginRight: '4%',
     marginBottom: 8,
-    backgroundColor: '#fff'
+    backgroundColor: COLORS.card
   },
   sizeButtonSelected: {
-    borderColor: '#3b82f6',
-    backgroundColor: '#dbeafe',
+    borderColor: '#84ccbf',
+    backgroundColor: COLORS.accentSoft,
     borderWidth: 2
   },
   sizeButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6b7280'
+    color: COLORS.muted
   },
   sizeButtonTextSelected: {
-    color: '#3b82f6'
+    color: '#115e59'
   },
   colorGrid: {
     flexDirection: 'row',

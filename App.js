@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import * as React from 'react';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, StatusBar, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -25,57 +25,79 @@ const RootStack = createStackNavigator();
 const AuthStack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-// AI Recommendation Stack
+const COLORS = {
+  background: '#f4f6fb',
+  card: '#ffffff',
+  textPrimary: '#0f172a',
+  textSecondary: '#64748b',
+  border: '#dbe2ee',
+  accent: '#0f766e',
+  accentSoft: '#d1fae5'
+};
+
+function TabIcon({ emoji, focused }) {
+  return (
+    <View
+      style={{
+        minWidth: 40,
+        height: 30,
+        borderRadius: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 10,
+        backgroundColor: focused ? COLORS.accentSoft : 'transparent'
+      }}
+    >
+      <Text style={{ fontSize: focused ? 20 : 18 }}>{emoji}</Text>
+    </View>
+  );
+}
+
 function RecommendationStack() {
   return (
     <Stack.Navigator
       screenOptions={{
         headerTitleAlign: 'center',
-        headerStyle: { backgroundColor: '#fff' },
-        headerTitleStyle: { fontWeight: '800' },
+        headerStyle: { backgroundColor: COLORS.card },
+        headerTitleStyle: {
+          color: COLORS.textPrimary,
+          fontWeight: '800',
+          fontSize: 18,
+          letterSpacing: 0.3
+        },
+        headerTintColor: COLORS.textPrimary,
         headerShadowVisible: false
       }}
     >
-      <Stack.Screen
-        name="Measurement"
-        component={MeasurementScreen}
-        options={{ title: 'Home Fit Finder' }}
-      />
+      <Stack.Screen name="Measurement" component={MeasurementScreen} options={{ title: 'Home Fit Finder' }} />
       <Stack.Screen
         name="BrandRecommendation"
         component={BrandRecommendationScreen}
         options={{ title: 'AI Recommendations' }}
       />
-      <Stack.Screen
-        name="Result"
-        component={ResultScreen}
-        options={{ title: 'Size Recommendation' }}
-      />
+      <Stack.Screen name="Result" component={ResultScreen} options={{ title: 'Size Recommendation' }} />
     </Stack.Navigator>
   );
 }
 
-// Ecommerce Stack
 function ShoppingStack() {
   return (
     <Stack.Navigator
       screenOptions={{
         headerTitleAlign: 'center',
-        headerStyle: { backgroundColor: '#fff' },
-        headerTitleStyle: { fontWeight: '800' },
+        headerStyle: { backgroundColor: COLORS.card },
+        headerTitleStyle: {
+          color: COLORS.textPrimary,
+          fontWeight: '800',
+          fontSize: 18,
+          letterSpacing: 0.3
+        },
+        headerTintColor: COLORS.textPrimary,
         headerShadowVisible: false
       }}
     >
-      <Stack.Screen
-        name="ProductsScreen"
-        component={ProductsScreen}
-        options={{ title: 'Shop' }}
-      />
-      <Stack.Screen
-        name="ProductDetail"
-        component={ProductDetailScreen}
-        options={{ title: 'Product Details' }}
-      />
+      <Stack.Screen name="ProductsScreen" component={ProductsScreen} options={{ title: 'Shop' }} />
+      <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={{ title: 'Product Details' }} />
     </Stack.Navigator>
   );
 }
@@ -93,7 +115,17 @@ function MainTabs() {
               options={{
                 headerShown: true,
                 title: 'Brand Data',
-                presentation: 'modal'
+                presentation: 'modal',
+                headerTitleAlign: 'center',
+                headerStyle: { backgroundColor: COLORS.card },
+                headerTitleStyle: {
+                  color: COLORS.textPrimary,
+                  fontWeight: '800',
+                  fontSize: 18,
+                  letterSpacing: 0.3
+                },
+                headerTintColor: COLORS.textPrimary,
+                headerShadowVisible: false
               }}
             />
           </RootStack.Navigator>
@@ -108,19 +140,32 @@ function TabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#3b82f6',
-        tabBarInactiveTintColor: '#9ca3af',
+        tabBarHideOnKeyboard: true,
+        tabBarActiveTintColor: COLORS.accent,
+        tabBarInactiveTintColor: COLORS.textSecondary,
         tabBarStyle: {
-          borderTopWidth: 1,
-          borderTopColor: '#e5e7eb',
-          backgroundColor: '#fff',
-          height: 60,
+          position: 'absolute',
+          left: 14,
+          right: 14,
+          bottom: 14,
+          borderTopWidth: 0,
+          borderWidth: 1,
+          borderColor: COLORS.border,
+          backgroundColor: COLORS.card,
+          height: 68,
+          borderRadius: 22,
           paddingBottom: 8,
-          paddingTop: 8
+          paddingTop: 8,
+          elevation: 8,
+          shadowColor: '#0f172a',
+          shadowOpacity: 0.09,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 6 }
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600'
+          fontWeight: '700',
+          marginBottom: 2
         }
       }}
     >
@@ -129,7 +174,7 @@ function TabNavigator() {
         component={RecommendationStack}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>🏠</Text>
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />
         }}
       />
       <Tab.Screen
@@ -137,7 +182,7 @@ function TabNavigator() {
         component={StyleAIScreen}
         options={{
           tabBarLabel: 'Style AI',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>🧠</Text>
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🧠" focused={focused} />
         }}
       />
       <Tab.Screen
@@ -145,7 +190,7 @@ function TabNavigator() {
         component={ShoppingStack}
         options={{
           tabBarLabel: 'Shop',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>🛍️</Text>
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🛍️" focused={focused} />
         }}
       />
       <Tab.Screen
@@ -153,7 +198,7 @@ function TabNavigator() {
         component={WishlistScreen}
         options={{
           tabBarLabel: 'Wishlist',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>❤️</Text>
+          tabBarIcon: ({ focused }) => <TabIcon emoji="❤️" focused={focused} />
         }}
       />
       <Tab.Screen
@@ -161,7 +206,7 @@ function TabNavigator() {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profile',
-          tabBarIcon: () => <Text style={{ fontSize: 24 }}>👤</Text>
+          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />
         }}
       />
     </Tab.Navigator>
@@ -170,12 +215,12 @@ function TabNavigator() {
 
 function AuthStackNavigator() {
   return (
-    <AuthStack.Navigator>
-      <AuthStack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ headerShown: false }}
-      />
+    <AuthStack.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: COLORS.background }
+      }}
+    >
+      <AuthStack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
     </AuthStack.Navigator>
   );
 }
@@ -185,9 +230,46 @@ function AuthGate() {
 
   if (isInitializing) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f6f5f2' }}>
-        <ActivityIndicator size="large" color="#111827" />
-        <Text style={{ marginTop: 10, color: '#374151', fontWeight: '600' }}>Checking session...</Text>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: COLORS.background
+        }}
+      >
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        <View
+          style={{
+            backgroundColor: COLORS.card,
+            borderWidth: 1,
+            borderColor: COLORS.border,
+            borderRadius: 18,
+            paddingVertical: 24,
+            paddingHorizontal: 28,
+            alignItems: 'center',
+            elevation: 4,
+            shadowColor: '#0f172a',
+            shadowOpacity: 0.06,
+            shadowRadius: 10,
+            shadowOffset: { width: 0, height: 6 }
+          }}
+        >
+          <ActivityIndicator size="large" color={COLORS.accent} />
+          <Text
+            style={{
+              marginTop: 12,
+              color: COLORS.textPrimary,
+              fontWeight: '800',
+              fontSize: 16
+            }}
+          >
+            AI Fit Predictor
+          </Text>
+          <Text style={{ marginTop: 6, color: COLORS.textSecondary, fontWeight: '600' }}>
+            Checking session...
+          </Text>
+        </View>
       </View>
     );
   }
@@ -203,6 +285,7 @@ export default function App() {
   return (
     <AuthProvider>
       <NavigationContainer>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
         <AuthGate />
       </NavigationContainer>
     </AuthProvider>

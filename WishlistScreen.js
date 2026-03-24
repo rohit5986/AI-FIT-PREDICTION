@@ -3,6 +3,16 @@ import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
 import { WishlistContext } from './WishlistContext';
 import ProductImage from './ProductImage';
 
+const COLORS = {
+  bg: '#f4f6fb',
+  card: '#ffffff',
+  text: '#0f172a',
+  muted: '#64748b',
+  border: '#dbe2ee',
+  accent: '#0f766e',
+  accentSoft: '#d1fae5'
+};
+
 const formatINR = (value) =>
   new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -113,28 +123,28 @@ export default function WishlistScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f5f2'
+    backgroundColor: COLORS.bg
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.card,
     paddingVertical: 16,
     paddingHorizontal: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
+    borderBottomColor: COLORS.border
   },
   title: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#1a1a1a'
+    color: COLORS.text
   },
   itemCount: {
     fontSize: 13,
-    color: '#6b7280',
+    color: '#115e59',
     fontWeight: '600',
-    backgroundColor: '#fee2e2',
+    backgroundColor: COLORS.accentSoft,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12
@@ -144,18 +154,18 @@ const styles = StyleSheet.create({
     paddingBottom: 100
   },
   wishlistItem: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     padding: 12,
     marginBottom: 10,
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#e5e7eb'
+    borderColor: COLORS.border
   },
   itemImage: {
     width: 80,
     height: 80,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f8fafc',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -178,12 +188,12 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#111827',
+    color: COLORS.text,
     marginBottom: 4
   },
   itemBrand: {
     fontSize: 11,
-    color: '#6b7280',
+    color: COLORS.muted,
     marginBottom: 6
   },
   ratingRow: {
@@ -198,7 +208,7 @@ const styles = StyleSheet.create({
   },
   reviews: {
     fontSize: 10,
-    color: '#9ca3af',
+    color: COLORS.muted,
     marginLeft: 4
   },
   priceRow: {
@@ -208,7 +218,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#1f2937'
+    color: COLORS.text
   },
   originalPrice: {
     fontSize: 11,
@@ -221,14 +231,14 @@ const styles = StyleSheet.create({
     marginLeft: 8
   },
   addBtn: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: COLORS.accent,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,
     marginBottom: 6
   },
   addBtnText: {
-    color: '#fff',
+    color: '#ecfeff',
     fontSize: 11,
     fontWeight: '700'
   },
@@ -249,7 +259,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f6f5f2'
+    backgroundColor: COLORS.bg
   },
   emptyEmoji: {
     fontSize: 80,
@@ -258,24 +268,24 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#111827',
+    color: COLORS.text,
     marginBottom: 8
   },
   emptyText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: COLORS.muted,
     textAlign: 'center',
     marginBottom: 24,
     paddingHorizontal: 32
   },
   exploreBtnContainer: {
-    backgroundColor: '#fbbf24',
+    backgroundColor: COLORS.accent,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8
   },
   exploreBtn: {
-    color: '#92400e',
+    color: '#ecfeff',
     fontSize: 14,
     fontWeight: '700'
   },
@@ -284,19 +294,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.card,
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb'
+    borderTopColor: COLORS.border
   },
   actionBtn: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: COLORS.accent,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center'
   },
   actionBtnText: {
-    color: '#fff',
+    color: '#ecfeff',
     fontSize: 14,
     fontWeight: '700'
   }

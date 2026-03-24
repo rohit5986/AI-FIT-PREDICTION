@@ -16,6 +16,17 @@ import { UserProfileContext } from './UserProfileContext';
 import { getPersonalizedRecommendations } from './productsData';
 import ProductImage from './ProductImage';
 
+const COLORS = {
+  bg: '#f4f6fb',
+  card: '#ffffff',
+  text: '#0f172a',
+  muted: '#64748b',
+  border: '#dbe2ee',
+  accent: '#0f766e',
+  accentSoft: '#d1fae5',
+  warmSoft: '#fff7ed'
+};
+
 const formatINR = (value) =>
   new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -163,10 +174,12 @@ export default function MeasurementScreen({ navigation }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Home Fit Finder</Text>
-        <Text style={styles.subtitle}>
-          Enter your fit details once and get precise brand and product suggestions instantly.
-        </Text>
+        <View style={styles.heroCard}>
+          <Text style={styles.title}>Home Fit Finder</Text>
+          <Text style={styles.subtitle}>
+            Enter your fit details once and get precise brand and product suggestions instantly.
+          </Text>
+        </View>
 
         {Array.isArray(profile?.preferredBrands) && profile.preferredBrands.length > 0 ? (
           <View style={styles.profileHintBox}>
@@ -176,50 +189,57 @@ export default function MeasurementScreen({ navigation }) {
           </View>
         ) : null}
 
-        <Text style={styles.sectionLabel}>Clothing Type</Text>
-        {renderChips(categoryOptions, category, setCategory)}
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionLabel}>Clothing Type</Text>
+          {renderChips(categoryOptions, category, setCategory)}
 
-        <Text style={styles.sectionLabel}>Audience</Text>
-        {renderChips(audienceOptions, audience, setAudience)}
+          <Text style={styles.sectionLabel}>Audience</Text>
+          {renderChips(audienceOptions, audience, setAudience)}
+        </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Height (cm)"
-          keyboardType="numeric"
-          value={height}
-          onChangeText={setHeight}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Weight (kg) - optional"
-          keyboardType="numeric"
-          value={weight}
-          onChangeText={setWeight}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Chest (cm)"
-          keyboardType="numeric"
-          value={chest}
-          onChangeText={setChest}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Waist (cm)"
-          keyboardType="numeric"
-          value={waist}
-          onChangeText={setWaist}
-        />
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionLabel}>Body Measurements</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Height (cm)"
+            keyboardType="numeric"
+            value={height}
+            onChangeText={setHeight}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Weight (kg) - optional"
+            keyboardType="numeric"
+            value={weight}
+            onChangeText={setWeight}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Chest (cm)"
+            keyboardType="numeric"
+            value={chest}
+            onChangeText={setChest}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Waist (cm)"
+            keyboardType="numeric"
+            value={waist}
+            onChangeText={setWaist}
+          />
+        </View>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <Pressable style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Get Precise Suggestions</Text>
-        </Pressable>
+        <View style={styles.actionsCard}>
+          <Pressable style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Get Precise Suggestions</Text>
+          </Pressable>
 
-        <Pressable style={styles.secondaryButton} onPress={handleOpenDetailedBrandAI}>
-          <Text style={styles.secondaryButtonText}>Open Detailed Brand AI</Text>
-        </Pressable>
+          <Pressable style={styles.secondaryButton} onPress={handleOpenDetailedBrandAI}>
+            <Text style={styles.secondaryButtonText}>Open Detailed Brand AI</Text>
+          </Pressable>
+        </View>
 
         {recommendationResult ? (
           <View style={styles.resultContainer}>
@@ -310,40 +330,63 @@ export default function MeasurementScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f6f5f2' },
-  scrollContent: { padding: 20, paddingBottom: 56 },
+  container: { flex: 1, backgroundColor: COLORS.bg },
+  scrollContent: { padding: 20, paddingBottom: 96 },
+  heroCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginBottom: 12,
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2
+  },
   title: {
     fontSize: 24,
     fontWeight: '800',
     marginBottom: 8,
     textAlign: 'center',
-    color: '#1a1a1a'
+    color: COLORS.text
   },
   subtitle: {
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 20,
-    color: '#4a4a4a'
+    color: COLORS.muted,
+    lineHeight: 20
   },
   profileHintBox: {
     marginBottom: 12,
-    backgroundColor: '#eef2ff',
+    backgroundColor: '#edf8f7',
     borderWidth: 1,
-    borderColor: '#c7d2fe',
+    borderColor: COLORS.accentSoft,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8
   },
   profileHintText: {
-    color: '#3730a3',
+    color: '#115e59',
     fontSize: 11,
     fontWeight: '600'
   },
+  sectionCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 12
+  },
   sectionLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 8,
-    color: '#1f2937'
+    color: COLORS.text
   },
   chipGroup: {
     flexDirection: 'row',
@@ -355,39 +398,48 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#c4bcb0',
-    backgroundColor: '#fff',
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.card,
     marginRight: 10,
     marginBottom: 10
   },
   chipSelected: {
-    backgroundColor: '#1f2937',
-    borderColor: '#1f2937'
+    backgroundColor: COLORS.accentSoft,
+    borderColor: '#84ccbf'
   },
-  chipText: { fontSize: 13, color: '#1f2937' },
-  chipTextSelected: { color: '#fef3c7' },
+  chipText: { fontSize: 13, color: COLORS.text, fontWeight: '600' },
+  chipTextSelected: { color: '#115e59' },
   input: {
     borderWidth: 1,
-    borderColor: '#d4d4d4',
+    borderColor: COLORS.border,
     padding: 12,
     marginBottom: 14,
     borderRadius: 10,
-    backgroundColor: '#fff'
+    backgroundColor: COLORS.card,
+    color: COLORS.text
   },
   errorText: {
     color: '#b91c1c',
     fontSize: 13,
     marginBottom: 12
   },
+  actionsCard: {
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 8
+  },
   submitButton: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: COLORS.accent,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 6
   },
   submitButtonText: {
-    color: '#1a1a1a',
+    color: '#ecfeff',
     fontWeight: '700',
     fontSize: 16
   },
@@ -395,20 +447,20 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: COLORS.border,
     paddingVertical: 12,
     alignItems: 'center',
-    backgroundColor: '#ffffff'
+    backgroundColor: COLORS.card
   },
   secondaryButtonText: {
-    color: '#1f2937',
+    color: COLORS.text,
     fontWeight: '600'
   },
   resultContainer: {
     marginTop: 20
   },
   analysisModeBanner: {
-    backgroundColor: '#fff7ed',
+    backgroundColor: COLORS.warmSoft,
     borderWidth: 1,
     borderColor: '#fed7aa',
     borderRadius: 10,
@@ -425,15 +477,15 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 19,
     fontWeight: '800',
-    color: '#111827',
+    color: COLORS.text,
     marginBottom: 10
   },
   summaryCard: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#f8fafc',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
+    borderColor: COLORS.border,
     padding: 12,
     marginBottom: 14
   },
@@ -443,13 +495,13 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 11,
-    color: '#6b7280',
+    color: COLORS.muted,
     marginBottom: 4
   },
   summaryValue: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#1f2937'
+    color: COLORS.text
   },
   profileAppliedText: {
     marginBottom: 10,

@@ -12,6 +12,18 @@ import {
 } from 'react-native';
 import { AuthContext } from './AuthContext';
 
+const COLORS = {
+  bg: '#f4f6fb',
+  card: '#ffffff',
+  softCard: '#eef6f6',
+  text: '#0f172a',
+  muted: '#64748b',
+  border: '#dbe2ee',
+  accent: '#0f766e',
+  accentText: '#ecfeff',
+  danger: '#b91c1c'
+};
+
 export default function LoginScreen() {
   const { login, signup, isFirebaseConfigured, authError } = useContext(AuthContext);
   const [mode, setMode] = useState('login');
@@ -73,6 +85,9 @@ export default function LoginScreen() {
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={styles.heroCard}>
+          <View style={styles.badgeRow}>
+            <Text style={styles.badge}>AI FIT</Text>
+          </View>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>
             Login to keep your profile and recommendations synced securely with Firebase.
@@ -125,7 +140,7 @@ export default function LoginScreen() {
               disabled={!canSubmit}
             >
               {isSubmitting ? (
-                <ActivityIndicator color="#fef3c7" />
+                <ActivityIndicator color={COLORS.accentText} />
               ) : (
                 <Text style={styles.primaryButtonText}>{isSignupMode ? 'Create Account' : 'Login'}</Text>
               )}
@@ -150,7 +165,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#efe9df'
+    backgroundColor: COLORS.bg
   },
   container: {
     flexGrow: 1,
@@ -159,58 +174,82 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   heroCard: {
-    backgroundColor: '#fdfbf6',
-    borderRadius: 18,
+    backgroundColor: COLORS.softCard,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#dfd7ca',
-    paddingHorizontal: 16,
-    paddingVertical: 18
+    borderColor: COLORS.border,
+    paddingHorizontal: 18,
+    paddingVertical: 20,
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 5
+  },
+  badgeRow: {
+    alignItems: 'center',
+    marginBottom: 8
+  },
+  badge: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+    color: COLORS.accent,
+    backgroundColor: '#d1fae5',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5
   },
   title: {
     fontSize: 30,
     fontWeight: '800',
-    color: '#111827',
+    color: COLORS.text,
     textAlign: 'center'
   },
   subtitle: {
     marginTop: 8,
     fontSize: 13,
     lineHeight: 19,
-    color: '#4b5563',
+    color: COLORS.muted,
     textAlign: 'center'
   },
   formCard: {
     marginTop: 18,
-    backgroundColor: '#ffffff',
-    borderRadius: 14,
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e5e7eb',
-    padding: 14
+    borderColor: COLORS.border,
+    padding: 14,
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 3
   },
   modeTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
+    fontWeight: '800',
+    color: COLORS.text,
     marginBottom: 10
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: COLORS.border,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginBottom: 10,
-    color: '#111827',
-    backgroundColor: '#fff'
+    color: COLORS.text,
+    backgroundColor: '#f8fafc'
   },
   errorText: {
-    color: '#b91c1c',
+    color: COLORS.danger,
     fontSize: 12,
     fontWeight: '600',
     marginBottom: 8
   },
   primaryButton: {
-    backgroundColor: '#111827',
+    backgroundColor: COLORS.accent,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -220,7 +259,7 @@ const styles = StyleSheet.create({
     opacity: 0.75
   },
   primaryButtonText: {
-    color: '#fef3c7',
+    color: COLORS.accentText,
     fontSize: 14,
     fontWeight: '700'
   },
@@ -229,13 +268,13 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   switchButtonText: {
-    color: '#1d4ed8',
+    color: COLORS.accent,
     fontWeight: '700',
     fontSize: 12
   },
   noteText: {
     marginTop: 12,
-    color: '#6b7280',
+    color: COLORS.muted,
     textAlign: 'center',
     fontSize: 11,
     lineHeight: 16,

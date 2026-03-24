@@ -12,6 +12,16 @@ import { PRODUCTS } from './productsData';
 import { UserProfileContext } from './UserProfileContext';
 import { AuthContext } from './AuthContext';
 
+const COLORS = {
+  bg: '#f4f6fb',
+  card: '#ffffff',
+  text: '#0f172a',
+  muted: '#64748b',
+  border: '#dbe2ee',
+  accent: '#0f766e',
+  accentSoft: '#d1fae5'
+};
+
 export default function ProfileScreen({ navigation }) {
   const { profile, updateProfile, resetProfile } = useContext(UserProfileContext);
   const { user, logout } = useContext(AuthContext);
@@ -217,33 +227,33 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: '#f6f5f2'
+    backgroundColor: COLORS.bg
   },
   title: {
     fontSize: 26,
     fontWeight: '800',
-    color: '#111827',
+    color: COLORS.text,
     textAlign: 'center',
     marginBottom: 6
   },
   subtitle: {
     fontSize: 13,
-    color: '#6b7280',
+    color: COLORS.muted,
     textAlign: 'center',
     marginBottom: 18
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e5e7eb'
+    borderColor: COLORS.border
   },
   cardTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#111827',
+    color: COLORS.text,
     marginBottom: 8
   },
   accountEmail: {
@@ -277,13 +287,13 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d4d4d4',
+    borderColor: COLORS.border,
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 10,
     marginBottom: 10,
-    backgroundColor: '#fff',
-    color: '#111827'
+    backgroundColor: '#f8fafc',
+    color: COLORS.text
   },
   sectionLabel: {
     marginTop: 4,
@@ -347,13 +357,13 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     marginTop: 6,
-    backgroundColor: '#111827',
+    backgroundColor: COLORS.accent,
     borderRadius: 10,
     paddingVertical: 11,
     alignItems: 'center'
   },
   primaryButtonText: {
-    color: '#fef3c7',
+    color: '#ecfeff',
     fontWeight: '700',
     fontSize: 13
   },

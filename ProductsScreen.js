@@ -8,12 +8,30 @@ import {
   TextInput,
   ScrollView,
   Alert,
-  Linking,
+  Linking
 } from 'react-native';
 import { WishlistContext } from './WishlistContext';
 import { PRODUCTS, searchProducts, getProductsByCategory } from './productsData';
 import { CATEGORIES } from './sizeCharts';
 import ProductImage from './ProductImage';
+
+const COLORS = {
+  bg: '#f4f6fb',
+  card: '#ffffff',
+  text: '#0f172a',
+  muted: '#64748b',
+  border: '#dbe2ee',
+  accent: '#0f766e',
+  accentSoft: '#d1fae5'
+};
+
+const SORT_OPTIONS = [
+  { label: 'Popular', value: 'popular' },
+  { label: 'Price: Low to High', value: 'price-low' },
+  { label: 'Price: High to Low', value: 'price-high' },
+  { label: 'Rating', value: 'rating' },
+  { label: 'Discount', value: 'discount' }
+];
 
 const formatINR = (value) =>
   new Intl.NumberFormat('en-IN', {
@@ -23,8 +41,7 @@ const formatINR = (value) =>
   }).format(Number(value) || 0);
 
 export default function ProductsScreen({ navigation }) {
-  const { isInWishlist, addToWishlist, removeFromWishlist } =
-    useContext(WishlistContext);
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useContext(WishlistContext);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedBrand, setSelectedBrand] = useState('all');
@@ -54,7 +71,6 @@ export default function ProductsScreen({ navigation }) {
       filtered = filtered.filter((item) => item.brandId === selectedBrand);
     }
 
-    // Sort
     if (sortBy === 'price-low') {
       filtered = [...filtered].sort((a, b) => a.price - b.price);
     } else if (sortBy === 'price-high') {
@@ -63,9 +79,9 @@ export default function ProductsScreen({ navigation }) {
       filtered = [...filtered].sort((a, b) => b.rating - a.rating);
     } else if (sortBy === 'discount') {
       filtered = [...filtered].sort((a, b) => {
-        const discA = ((b.originalPrice - b.price) / b.originalPrice) * 100;
-        const discB = ((b.originalPrice - a.price) / b.originalPrice) * 100;
-        return discA - discB;
+        const discA = ((a.originalPrice - a.price) / a.originalPrice) * 100;
+        const discB = ((b.originalPrice - b.price) / b.originalPrice) * 100;
+        return discB - discA;
       });
     }
 
@@ -86,10 +102,15 @@ export default function ProductsScreen({ navigation }) {
     }
   };
 
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('all');
+    setSelectedBrand('all');
+    setSortBy('popular');
+  };
+
   const renderProductCard = ({ item }) => {
-    const discountPercent = Math.round(
-      ((item.originalPrice - item.price) / item.originalPrice) * 100
-    );
+    const discountPercent = Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100);
     const inWishlist = isInWishlist(item.id);
 
     return (
@@ -144,12 +165,7 @@ export default function ProductsScreen({ navigation }) {
 
           <Text style={styles.quality}>Quality: {item.quality}/5</Text>
 
-          <Pressable
-            style={styles.viewButton}
-            onPress={() => {
-              navigation.navigate('ProductDetail', { product: item });
-            }}
-          >
+          <Pressable style={styles.viewButton} onPress={() => navigation.navigate('ProductDetail', { product: item })}>
             <Text style={styles.viewButtonText}>View Details</Text>
           </Pressable>
 
@@ -169,156 +185,154 @@ export default function ProductsScreen({ navigation }) {
     );
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Header with search */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>Shop Now</Text>
-          <Text style={styles.headerSubtitle}>Curated catalog for quick product redirection</Text>
-        </View>
+  const renderListHeader = () => (
+    <>
+      <View style={styles.categoriesSection}>
+        <Text style={styles.sectionTitle}>Categories</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesScroll}
+        >
+          <Pressable
+            style={[
+              styles.categoryChip,
+              selectedCategory === 'all' && styles.activeCategoryChip
+            ]}
+            onPress={() => setSelectedCategory('all')}
+          >
+            <Text
+              style={[
+                styles.categoryText,
+                selectedCategory === 'all' && styles.activeCategoryText
+              ]}
+            >
+              All
+            </Text>
+          </Pressable>
+          {CATEGORIES.map((category) => (
+            <Pressable
+              key={category.id}
+              style={[
+                styles.categoryChip,
+                selectedCategory === category.id && styles.activeCategoryChip
+              ]}
+              onPress={() => setSelectedCategory(category.id)}
+            >
+              <Text
+                style={[
+                  styles.categoryText,
+                  selectedCategory === category.id && styles.activeCategoryText
+                ]}
+              >
+                {category.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
       </View>
 
-      {/* Search Bar */}
+      <View style={styles.brandsSection}>
+        <Text style={styles.sectionTitle}>Brands</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <Pressable
+            style={[styles.brandChip, selectedBrand === 'all' && styles.activeBrandChip]}
+            onPress={() => setSelectedBrand('all')}
+          >
+            <Text
+              style={[
+                styles.brandText,
+                selectedBrand === 'all' && styles.activeBrandText
+              ]}
+            >
+              All Brands
+            </Text>
+          </Pressable>
+          {brandOptions.map((brand) => (
+            <Pressable
+              key={brand.id}
+              style={[
+                styles.brandChip,
+                selectedBrand === brand.id && styles.activeBrandChip
+              ]}
+              onPress={() => setSelectedBrand(brand.id)}
+            >
+              <Text
+                style={[
+                  styles.brandText,
+                  selectedBrand === brand.id && styles.activeBrandText
+                ]}
+              >
+                {brand.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+
+      <View style={styles.sortSection}>
+        <Text style={styles.sectionTitle}>Sort By</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {SORT_OPTIONS.map((option) => (
+            <Pressable
+              key={option.value}
+              style={[
+                styles.sortChip,
+                sortBy === option.value && styles.activeSortChip
+              ]}
+              onPress={() => setSortBy(option.value)}
+            >
+              <Text
+                style={[
+                  styles.sortText,
+                  sortBy === option.value && styles.activeSortText
+                ]}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+
+      <View style={styles.resultsHeader}>
+        <Text style={styles.resultsText}>{displayProducts.length} products found</Text>
+        <Pressable onPress={resetFilters}>
+          <Text style={styles.clearFilters}>Clear filters</Text>
+        </Pressable>
+      </View>
+    </>
+  );
+
+  return (
+    <View style={styles.container}>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search products..."
+          placeholder="Search products or brands..."
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={COLORS.muted}
         />
-        <Text style={styles.searchIcon}>🔍</Text>
       </View>
 
-      {/* Category Filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesScroll}>
-        <Pressable
-          style={[styles.categoryChip, selectedCategory === 'all' && styles.categoryChipActive]}
-          onPress={() => setSelectedCategory('all')}
-        >
-          <Text
-            style={[
-              styles.categoryChipText,
-              selectedCategory === 'all' && styles.categoryChipTextActive
-            ]}
-          >
-            All
-          </Text>
-        </Pressable>
-        {CATEGORIES.map((category) => (
-          <Pressable
-            key={category.id}
-            style={[
-              styles.categoryChip,
-              selectedCategory === category.id && styles.categoryChipActive
-            ]}
-            onPress={() => setSelectedCategory(category.id)}
-          >
-            <Text
-              style={[
-                styles.categoryChipText,
-                selectedCategory === category.id && styles.categoryChipTextActive
-              ]}
-            >
-              {category.label}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* Brand Filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.brandsScroll}>
-        <Pressable
-          style={[styles.brandChip, selectedBrand === 'all' && styles.brandChipActive]}
-          onPress={() => setSelectedBrand('all')}
-        >
-          <Text
-            style={[
-              styles.brandChipText,
-              selectedBrand === 'all' && styles.brandChipTextActive
-            ]}
-          >
-            All Brands
-          </Text>
-        </Pressable>
-        {brandOptions.map((brand) => (
-          <Pressable
-            key={brand.id}
-            style={[
-              styles.brandChip,
-              selectedBrand === brand.id && styles.brandChipActive
-            ]}
-            onPress={() => setSelectedBrand(brand.id)}
-          >
-            <Text
-              style={[
-                styles.brandChipText,
-                selectedBrand === brand.id && styles.brandChipTextActive
-              ]}
-            >
-              {brand.label}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* Sort Options */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.sortScroll}
-        contentContainerStyle={styles.sortContainer}
-      >
-        {[
-          { label: 'Popular', value: 'popular' },
-          { label: 'Price: Low to High', value: 'price-low' },
-          { label: 'Price: High to Low', value: 'price-high' },
-          { label: 'Rating', value: 'rating' },
-          { label: 'Discount', value: 'discount' }
-        ].map((option) => (
-          <Pressable
-            key={option.value}
-            style={[styles.sortChip, sortBy === option.value && styles.sortChipActive]}
-            onPress={() => setSortBy(option.value)}
-          >
-            <Text
-              style={[
-                styles.sortChipText,
-                sortBy === option.value && styles.sortChipTextActive
-              ]}
-            >
-              {option.label}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-
-      {/* Products Grid */}
-      <Text style={styles.resultCount}>{displayProducts.length} products found</Text>
-      {displayProducts.length > 0 ? (
-        <FlatList
-          data={displayProducts}
-          renderItem={renderProductCard}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          columnWrapperStyle={styles.gridRow}
-          contentContainerStyle={styles.gridContainer}
-        />
-      ) : (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No products found</Text>
-          <Pressable
-            onPress={() => {
-              setSearchQuery('');
-              setSelectedCategory('all');
-              setSelectedBrand('all');
-            }}
-          >
-            <Text style={styles.emptyLink}>Clear filters</Text>
-          </Pressable>
-        </View>
-      )}
+      <FlatList
+        data={displayProducts}
+        renderItem={renderProductCard}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={displayProducts.length ? styles.gridRow : undefined}
+        contentContainerStyle={[styles.gridContainer, displayProducts.length === 0 && styles.emptyListContent]}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No products found</Text>
+            <Pressable onPress={resetFilters}>
+              <Text style={styles.emptyLink}>Clear filters</Text>
+            </Pressable>
+          </View>
+        }
+      />
     </View>
   );
 }
@@ -326,149 +340,141 @@ export default function ProductsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f5f2'
+    backgroundColor: COLORS.bg
   },
-  header: {
-    backgroundColor: '#fff',
-    paddingVertical: 16,
+  searchContainer: {
+    backgroundColor: COLORS.card,
     paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border
+  },
+  searchInput: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    fontSize: 14,
+    color: COLORS.text
+  },
+  categoriesSection: {
+    backgroundColor: COLORS.card,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 10
+  },
+  categoriesScroll: {
+    marginHorizontal: -2
+  },
+  categoryChip: {
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border
+  },
+  activeCategoryChip: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent
+  },
+  categoryText: {
+    fontSize: 13,
+    color: COLORS.muted,
+    fontWeight: '600'
+  },
+  activeCategoryText: {
+    color: '#ecfeff'
+  },
+  brandsSection: {
+    backgroundColor: COLORS.card,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border
+  },
+  brandChip: {
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border
+  },
+  activeBrandChip: {
+    backgroundColor: COLORS.accentSoft,
+    borderColor: '#84ccbf'
+  },
+  brandText: {
+    fontSize: 13,
+    color: COLORS.muted,
+    fontWeight: '600'
+  },
+  activeBrandText: {
+    color: '#115e59'
+  },
+  sortSection: {
+    backgroundColor: COLORS.card,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border
+  },
+  sortChip: {
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 20,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border
+  },
+  activeSortChip: {
+    backgroundColor: COLORS.accent,
+    borderColor: COLORS.accent
+  },
+  sortText: {
+    fontSize: 13,
+    color: COLORS.muted,
+    fontWeight: '600'
+  },
+  activeSortText: {
+    color: '#ecfeff'
+  },
+  resultsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#1a1a1a'
-  },
-  headerSubtitle: {
-    marginTop: 2,
-    fontSize: 12,
-    color: '#6b7280',
-    fontWeight: '500'
-  },
-  searchContainer: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
+    paddingVertical: 10
   },
-  searchInput: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    fontSize: 14,
-    color: '#1f2937'
+  resultsText: {
+    fontSize: 13,
+    color: COLORS.muted
   },
-  searchIcon: {
-    marginLeft: 8,
-    fontSize: 16
-  },
-  categoriesScroll: {
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
-  },
-  categoryChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#fff'
-  },
-  categoryChipActive: {
-    backgroundColor: '#3b82f6',
-    borderColor: '#3b82f6'
-  },
-  categoryChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6b7280'
-  },
-  categoryChipTextActive: {
-    color: '#fff'
-  },
-  brandsScroll: {
-    backgroundColor: '#fff',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
-  },
-  brandChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#fff'
-  },
-  brandChipActive: {
-    backgroundColor: '#111827',
-    borderColor: '#111827'
-  },
-  brandChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#374151'
-  },
-  brandChipTextActive: {
-    color: '#fff'
-  },
-  resultCount: {
-    fontSize: 12,
-    color: '#6b7280',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 6
-  },
-  sortScroll: {
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb'
-  },
-  sortContainer: {
-    paddingHorizontal: 16,
-    paddingRight: 32
-  },
-  sortChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 16,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#fff'
-  },
-  sortChipActive: {
-    backgroundColor: '#fbbf24',
-    borderColor: '#fbbf24'
-  },
-  sortChipText: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#6b7280'
-  },
-  sortChipTextActive: {
-    color: '#92400e'
+  clearFilters: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.accent
   },
   gridContainer: {
     paddingHorizontal: 8,
     paddingVertical: 12,
     paddingBottom: 30
+  },
+  emptyListContent: {
+    flexGrow: 1
   },
   gridRow: {
     justifyContent: 'space-between',
@@ -477,15 +483,20 @@ const styles = StyleSheet.create({
   },
   productCard: {
     width: '48%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: COLORS.card,
+    borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e5e7eb'
+    borderColor: COLORS.border,
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3
   },
   imageContainer: {
     aspectRatio: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#f8fafc',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative'
@@ -519,7 +530,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.card,
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -535,7 +546,7 @@ const styles = StyleSheet.create({
   productName: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#111827',
+    color: COLORS.text,
     marginBottom: 4
   },
   ratingRow: {
@@ -550,7 +561,7 @@ const styles = StyleSheet.create({
   },
   reviews: {
     fontSize: 10,
-    color: '#9ca3af',
+    color: COLORS.muted,
     marginLeft: 4
   },
   priceRow: {
@@ -561,7 +572,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#1f2937'
+    color: COLORS.text
   },
   originalPrice: {
     fontSize: 11,
@@ -571,30 +582,31 @@ const styles = StyleSheet.create({
   },
   quality: {
     fontSize: 10,
-    color: '#6b7280',
+    color: COLORS.muted,
     marginBottom: 8
   },
   viewButton: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: COLORS.accent,
     paddingVertical: 8,
     borderRadius: 6,
     alignItems: 'center'
   },
   viewButtonText: {
-    color: '#fff',
+    color: '#ecfeff',
     fontSize: 11,
     fontWeight: '700'
   },
   sourceButton: {
     marginTop: 6,
     borderWidth: 1,
-    borderColor: '#1f2937',
+    borderColor: COLORS.border,
     borderRadius: 6,
     alignItems: 'center',
-    paddingVertical: 7
+    paddingVertical: 7,
+    backgroundColor: '#f8fafc'
   },
   sourceButtonText: {
-    color: '#1f2937',
+    color: COLORS.text,
     fontSize: 11,
     fontWeight: '700'
   },
@@ -605,11 +617,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#6b7280',
+    color: COLORS.muted,
     marginBottom: 12
   },
   emptyLink: {
-    color: '#3b82f6',
+    color: COLORS.accent,
     fontSize: 14,
     fontWeight: '600'
   }
