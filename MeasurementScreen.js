@@ -149,6 +149,25 @@ export default function MeasurementScreen({ navigation }) {
     });
   };
 
+  const navigateToStyleAIFromHomeResult = () => {
+    if (!recommendationResult) return;
+
+    const leadBrand = recommendationResult.topBrands?.[0];
+
+    navigation.navigate('StyleAI', {
+      fitSummary: {
+        size: recommendationResult.suggestedSize,
+        confidence: leadBrand ? `${Math.round((leadBrand.score || 0) * 100)}%` : 'medium',
+        brandName: leadBrand?.brandName || 'Recommended brands',
+        categoryLabel: CATEGORIES.find((item) => item.id === category)?.label || 'Clothing',
+        fitReason: 'Size suggestion generated from your Home Fit Finder inputs.',
+        measurements: recommendationResult.measurements
+      },
+      source: 'home-result',
+      seed: Date.now()
+    });
+  };
+
   const renderChips = (options, selectedId, onSelect) => (
     <View style={styles.chipGroup}>
       {options.map((option) => {
@@ -267,6 +286,10 @@ export default function MeasurementScreen({ navigation }) {
                 <Text style={styles.summaryValue}>{recommendationResult.totalCandidates}</Text>
               </View>
             </View>
+
+            <Pressable style={styles.styleAiButton} onPress={navigateToStyleAIFromHomeResult}>
+              <Text style={styles.styleAiButtonText}>Continue to Style AI</Text>
+            </Pressable>
 
             {recommendationResult.preferredBrandsApplied > 0 ? (
               <Text style={styles.profileAppliedText}>
@@ -502,6 +525,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: COLORS.text
+  },
+  styleAiButton: {
+    marginBottom: 12,
+    borderRadius: 12,
+    backgroundColor: '#0f766e',
+    paddingVertical: 12,
+    alignItems: 'center'
+  },
+  styleAiButtonText: {
+    color: '#ecfeff',
+    fontWeight: '700',
+    fontSize: 14
   },
   profileAppliedText: {
     marginBottom: 10,

@@ -75,8 +75,9 @@ function buildPhoneNetworkHelp(baseUrl) {
   ].join('\n');
 }
 
-export default function StyleAIScreen() {
+export default function StyleAIScreen({ route }) {
   const { profile } = useContext(UserProfileContext);
+  const [fitSummary, setFitSummary] = useState(null);
   const [backendUrl, setBackendUrl] = useState(DEFAULT_BACKEND_URL);
   const [analysisMode, setAnalysisMode] = useState('auto');
   const [selectedImage, setSelectedImage] = useState(null);
@@ -91,6 +92,7 @@ export default function StyleAIScreen() {
   const configAnim = useRef(new Animated.Value(0)).current;
   const mediaAnim = useRef(new Animated.Value(0)).current;
   const resultAnim = useRef(new Animated.Value(0)).current;
+  const lastSeedRef = useRef(null);
 
   const endpoint = useMemo(() => {
     return `${normalizeBaseUrl(backendUrl)}/analyze-style`;
@@ -138,6 +140,34 @@ export default function StyleAIScreen() {
     }).start();
   }, [analysis, resultAnim]);
 
+  useEffect(() => {
+    const incomingSummary = route?.params?.fitSummary;
+    const seed = route?.params?.seed;
+
+    if (!incomingSummary || !seed || seed === lastSeedRef.current) return;
+
+    lastSeedRef.current = seed;
+    setFitSummary(incomingSummary);
+
+    const seededPrompt = [
+      'Fit summary imported from Home predictor.',
+      `Recommended size: ${incomingSummary.size || 'N/A'} (${incomingSummary.brandName || 'Brand'})`,
+      `Category: ${incomingSummary.categoryLabel || 'Top'}`,
+      incomingSummary.fitReason ? `Fit note: ${incomingSummary.fitReason}` : ''
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    setChatMessages((prev) => [
+      {
+        id: `fit-seed-${seed}`,
+        role: 'assistant',
+        text: `${seededPrompt}\n\nUpload an outfit photo and I will personalize styling around this fit.`
+      },
+      ...prev
+    ]);
+  }, [route?.params]);
+
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permission.status !== 'granted') {
@@ -166,7 +196,7 @@ export default function StyleAIScreen() {
   };
 
   const buildChatContext = () => {
-    const measurements = profile?.measurements || {};
+    const measurements = profile?.measurements || fitSummary?.measurements || {};
     return {
       measurements: {
         height: toNumber(measurements.height),
@@ -374,6 +404,16 @@ export default function StyleAIScreen() {
             </View>
             <Text style={styles.pillHint}>Detected backend: {DEFAULT_BACKEND_URL}</Text>
           </View>
+
+          {fitSummary ? (
+            <View style={styles.fitSummaryBox}>
+              <Text style={styles.fitSummaryTitle}>From Home Fit Summary</Text>
+              <Text style={styles.fitSummaryText}>
+                Size {fitSummary.size} in {fitSummary.brandName} for {fitSummary.categoryLabel}
+              </Text>
+              <Text style={styles.fitSummaryHint}>Confidence: {fitSummary.confidence}</Text>
+            </View>
+          ) : null}
         </Animated.View>
 
         <Animated.View
@@ -707,6 +747,32 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontSize: 10,
     color: '#b6bfdd',
+  },
+  fitSummaryBox: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#3e4f8d',
+    backgroundColor: '#1b2448',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+  },
+  fitSummaryTitle: {
+    color: '#ffd5c3',
+    fontSize: 10,
+    letterSpacing: 0.8,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  fitSummaryText: {
+    color: '#f7f8fb',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  fitSummaryHint: {
+    marginTop: 3,
+    color: '#cfd7f8',
+    fontSize: 11,
   },
   card: {
     backgroundColor: '#f6f8ff',

@@ -48,6 +48,21 @@ export default function ResultScreen({ route, navigation }) {
     brandsOverride: brands
   });
 
+  const handleContinueToStyleAI = () => {
+    navigation.navigate('StyleAI', {
+      fitSummary: {
+        size: prediction.size,
+        confidence: prediction.confidence,
+        brandName: brand.name,
+        categoryLabel: category.label,
+        fitReason: prediction.fitReason,
+        measurements
+      },
+      source: 'result-summary',
+      seed: Date.now()
+    });
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Recommended Size</Text>
@@ -86,6 +101,10 @@ export default function ResultScreen({ route, navigation }) {
       <Text style={styles.note}>
         Tip: Measurements differ across brands. Use the chart in the brand page for final check.
       </Text>
+
+      <Pressable style={styles.nextButton} onPress={handleContinueToStyleAI}>
+        <Text style={styles.nextButtonText}>Next: Continue to Style AI</Text>
+      </Pressable>
 
       <Pressable style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Edit Measurements</Text>
@@ -126,6 +145,14 @@ const styles = StyleSheet.create({
   equivalentBrand: { fontSize: 14, color: '#111827' },
   equivalentSize: { fontSize: 14, fontWeight: '600', color: '#1f2937' },
   note: { marginTop: 16, fontSize: 12, color: '#6b7280', textAlign: 'center' },
+  nextButton: {
+    marginTop: 16,
+    backgroundColor: '#0f766e',
+    paddingVertical: 13,
+    borderRadius: 10,
+    alignItems: 'center'
+  },
+  nextButtonText: { color: '#ecfeff', fontWeight: '700' },
   backButton: {
     marginTop: 16,
     backgroundColor: '#1f2937',
